@@ -47,10 +47,12 @@ ASSIGNMENT_OPERATOR: ':=';
 //--- PARSER: ---
 stylesheet: varDeclaration* stylerule*;
 stylerule: (ID_IDENT | CLASS_IDENT | LOWER_IDENT) + OPEN_BRACE + styleDeclaration* CLOSE_BRACE;
-styleDeclaration: property + COLON + ((value | CAPITAL_IDENT) + operation*)  + SEMICOLON;
+styleDeclaration: property + COLON + ((value | CAPITAL_IDENT) + operation*)  + SEMICOLON | ifStatement;
 property: LOWER_IDENT;
 value: SCALAR | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE | TRUE | FALSE;
 
 varDeclaration: CAPITAL_IDENT + ASSIGNMENT_OPERATOR + value + SEMICOLON;
 operation: (PLUS | MIN | MUL) + (value | CAPITAL_IDENT);
+
+ifStatement: IF + BOX_BRACKET_OPEN + CAPITAL_IDENT + BOX_BRACKET_CLOSE + OPEN_BRACE + (styleDeclaration* | ifStatement)  CLOSE_BRACE (ELSE OPEN_BRACE styleDeclaration* CLOSE_BRACE)?;
 
