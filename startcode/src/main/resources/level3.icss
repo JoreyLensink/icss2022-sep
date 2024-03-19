@@ -6,6 +6,7 @@ UseLinkColor := FALSE;
 p {
 	background-color: #ffffff;
 	width: ParWidth;
+	length: 20px + 20px * 10px;
 	if[AdjustColor] {
 	    color: #124532;
 	    if[UseLinkColor]{
