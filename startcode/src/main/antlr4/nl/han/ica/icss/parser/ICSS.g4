@@ -54,5 +54,5 @@ value: SCALAR | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE | TRU
 varDeclaration: CAPITAL_IDENT + ASSIGNMENT_OPERATOR + value + SEMICOLON;
 operation: (PLUS | MIN | MUL) + (value | CAPITAL_IDENT);
 
-ifStatement: IF + BOX_BRACKET_OPEN + CAPITAL_IDENT + BOX_BRACKET_CLOSE + OPEN_BRACE + (styleDeclaration* | ifStatement)  CLOSE_BRACE (ELSE OPEN_BRACE styleDeclaration* CLOSE_BRACE)?;
+ifStatement: IF + BOX_BRACKET_OPEN + CAPITAL_IDENT + BOX_BRACKET_CLOSE + OPEN_BRACE + (styleDeclaration* | ifStatement)  CLOSE_BRACE (ELSE OPEN_BRACE (styleDeclaration* | ifStatement) CLOSE_BRACE)?;
 

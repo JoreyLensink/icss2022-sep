@@ -12,6 +12,9 @@ p {
 	        background-color: LinkColor;
 	    } else {
 	        background-color: #000000;
+	        if[UseLinkColor]{
+            	        background-color: LinkColor;
+            }
 	    }
 	}
 	height: 20px;
