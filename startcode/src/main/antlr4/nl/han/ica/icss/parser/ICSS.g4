@@ -49,19 +49,20 @@ DIV: '/';
 
 //--- PARSER: ---
 stylesheet: varDeclaration* stylerule*;
-stylerule: (ID_IDENT | CLASS_IDENT | LOWER_IDENT) + OPEN_BRACE + (styleDeclaration | ifStatement)* CLOSE_BRACE;
-styleDeclaration: LOWER_IDENT COLON (value | CAPITAL_IDENT | expression) SEMICOLON;
-value: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | (TRUE  | FALSE ) #booleanLiteral;
+stylerule: selector OPEN_BRACE (styleDeclaration | ifStatement | varDeclaration)* CLOSE_BRACE;
+styleDeclaration: styleTag COLON (literal | variableName | expression) SEMICOLON;
 
-varDeclaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR value SEMICOLON;
+literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | (TRUE  | FALSE ) #booleanLiteral;
 
-expression: term ((PLUS | MIN ) term)*;
-term: factor ((MUL | DIV) factor)*;
-factor: (CAPITAL_IDENT | value) | OPEN_PAREN expression CLOSE_PAREN;
+styleTag: LOWER_IDENT;
+variableName: CAPITAL_IDENT;
+varDeclaration: variableName ASSIGNMENT_OPERATOR literal SEMICOLON;
+selector: (ID_IDENT | CLASS_IDENT | LOWER_IDENT);
 
+expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
-ifStatement: IF + BOX_BRACKET_OPEN CAPITAL_IDENT BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement)*  CLOSE_BRACE (ELSE OPEN_BRACE (styleDeclaration | ifStatement)* CLOSE_BRACE)?;
-
+ifStatement: IF BOX_BRACKET_OPEN (variableName | (TRUE | FALSE)) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableName)*  CLOSE_BRACE elseStatement?;
+elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | varDeclaration)* CLOSE_BRACE;
 
 
 
