@@ -51,7 +51,7 @@ DIV: '/';
 stylesheet: varDeclaration* stylerule*;
 stylerule: (ID_IDENT | CLASS_IDENT | LOWER_IDENT) + OPEN_BRACE + (styleDeclaration | ifStatement)* CLOSE_BRACE;
 styleDeclaration: LOWER_IDENT COLON (value | CAPITAL_IDENT | expression) SEMICOLON;
-value: SCALAR | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE | TRUE | FALSE;
+value: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | (TRUE  | FALSE ) #booleanLiteral;
 
 varDeclaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR value SEMICOLON;
 
