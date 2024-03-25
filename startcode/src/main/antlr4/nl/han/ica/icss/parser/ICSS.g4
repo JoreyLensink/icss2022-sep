@@ -41,18 +41,28 @@ MIN: '-';
 MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
-
+// Self added
+OPEN_PAREN: '(';
+CLOSE_PAREN: ')';
+DIV: '/';
 
 
 //--- PARSER: ---
 stylesheet: varDeclaration* stylerule*;
 stylerule: (ID_IDENT | CLASS_IDENT | LOWER_IDENT) + OPEN_BRACE + (styleDeclaration | ifStatement)* CLOSE_BRACE;
-styleDeclaration: property + COLON + ((value | CAPITAL_IDENT) + operation*)  + SEMICOLON;
-property: LOWER_IDENT;
+styleDeclaration: LOWER_IDENT COLON (value | CAPITAL_IDENT | expression) SEMICOLON;
 value: SCALAR | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE | TRUE | FALSE;
 
-varDeclaration: CAPITAL_IDENT + ASSIGNMENT_OPERATOR + value + SEMICOLON;
-operation: (PLUS | MIN | MUL) + (value | CAPITAL_IDENT);
+varDeclaration: CAPITAL_IDENT ASSIGNMENT_OPERATOR value SEMICOLON;
 
-ifStatement: IF + BOX_BRACKET_OPEN + CAPITAL_IDENT + BOX_BRACKET_CLOSE + OPEN_BRACE + (styleDeclaration | ifStatement)*  CLOSE_BRACE (ELSE OPEN_BRACE (styleDeclaration | ifStatement)* CLOSE_BRACE)?;
+expression: term ((PLUS | MIN ) term)*;
+term: factor ((MUL | DIV) factor)*;
+factor: (CAPITAL_IDENT | value) | OPEN_PAREN expression CLOSE_PAREN;
+
+
+ifStatement: IF + BOX_BRACKET_OPEN CAPITAL_IDENT BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement)*  CLOSE_BRACE (ELSE OPEN_BRACE (styleDeclaration | ifStatement)* CLOSE_BRACE)?;
+
+
+
+
 

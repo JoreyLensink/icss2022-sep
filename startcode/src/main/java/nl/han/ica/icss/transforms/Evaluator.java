@@ -2,15 +2,9 @@ package nl.han.ica.icss.transforms;
 
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
-import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
-import nl.han.ica.icss.ast.literals.ScalarLiteral;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class Evaluator implements Transform {
 
@@ -22,9 +16,51 @@ public class Evaluator implements Transform {
 
     @Override
     public void apply(AST ast) {
-        //variableValues = new HANLinkedList<>();
+//        variableValues = new HANLinkedList<>();
+        applyStylesheet(ast.root);
 
     }
 
-    
+    private void applyStylesheet(Stylesheet stylesheet) {
+        applyStyleRule((Stylerule)stylesheet.getChildren().get(0));
+    }
+
+    private void applyStyleRule(Stylerule rule) {
+        for (ASTNode node : rule.getChildren()) {
+            if (node instanceof Declaration) {
+                applyDeclaration((Declaration) node);
+            }
+        }
+    }
+
+    private void applyDeclaration(Declaration declaration) {
+        declaration.expression = calculateExpression(declaration.expression);
+
+    }
+
+    private Expression calculateExpression(Expression expression) {
+        //check welke literal het is
+        if (expression instanceof Literal) {
+            return (Literal) expression;
+        } else {
+            return evaluateAddOperation((Operation) expression);
+        }
+    }
+
+    private Expression evaluateExpression(Expression expression) {
+        if (expression instanceof Operation) {
+            return evaluateAddOperation((Operation) expression);
+        } else {
+            return expression;
+        }
+    }
+
+    private Expression evaluateAddOperation(Operation expression) {
+        // (waarschijnlijk) iets toevoegen over verschillende litterals
+        PixelLiteral left = (PixelLiteral) evaluateExpression(expression.lhs);
+        PixelLiteral right = (PixelLiteral) evaluateExpression(expression.rhs);
+        return new PixelLiteral(left.value + right.value);
+    }
+
+
 }
