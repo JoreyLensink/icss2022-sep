@@ -48,21 +48,21 @@ DIV: '/';
 
 
 //--- PARSER: ---
-stylesheet: varDeclaration* stylerule*;
-stylerule: selector OPEN_BRACE (styleDeclaration | ifStatement | varDeclaration)* CLOSE_BRACE;
+stylesheet: variableAssignment* stylerule*;
+stylerule: selector OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
 styleDeclaration: styleTag COLON (literal | variableName | expression) SEMICOLON;
 
 literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | (TRUE  | FALSE ) #booleanLiteral;
 
 styleTag: LOWER_IDENT;
 variableName: CAPITAL_IDENT;
-varDeclaration: variableName ASSIGNMENT_OPERATOR literal SEMICOLON;
+variableAssignment: variableName ASSIGNMENT_OPERATOR literal SEMICOLON;
 selector: (ID_IDENT | CLASS_IDENT | LOWER_IDENT);
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
 ifStatement: IF BOX_BRACKET_OPEN (variableName | (TRUE | FALSE)) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableName)*  CLOSE_BRACE elseStatement?;
-elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | varDeclaration)* CLOSE_BRACE;
+elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
 
 
 

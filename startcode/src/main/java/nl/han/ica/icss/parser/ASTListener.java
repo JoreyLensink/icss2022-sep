@@ -125,13 +125,13 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterVarDeclaration(ICSSParser.VarDeclarationContext ctx) {
+    public void enterVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
         VariableAssignment variableAssignment = new VariableAssignment();
         currentContainer.push(variableAssignment);
     }
 
     @Override
-    public void exitVarDeclaration(ICSSParser.VarDeclarationContext ctx) {
+    public void exitVariableAssignment (ICSSParser.VariableAssignmentContext ctx) {
         VariableAssignment variableAssignment = (VariableAssignment) currentContainer.pop();
         currentContainer.peek().addChild(variableAssignment);
     }
