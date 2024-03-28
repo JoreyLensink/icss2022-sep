@@ -7,6 +7,9 @@ import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
+import nl.han.ica.icss.ast.selectors.ClassSelector;
+import nl.han.ica.icss.ast.selectors.IdSelector;
+import nl.han.ica.icss.ast.selectors.TagSelector;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
@@ -228,5 +231,39 @@ public class ASTListener extends ICSSBaseListener {
         }
     }
 
+    @Override
+    public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
+        TagSelector tagSelector = new TagSelector(ctx.getText());
+        currentContainer.push(tagSelector);
+    }
 
+    @Override
+    public void exitTagSelector(ICSSParser.TagSelectorContext ctx) {
+        TagSelector tagSelector = (TagSelector) currentContainer.pop();
+        currentContainer.peek().addChild(tagSelector);
+    }
+
+    @Override
+    public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
+        ClassSelector classSelector = new ClassSelector(ctx.getText());
+        currentContainer.push(classSelector);
+    }
+
+    @Override
+    public void exitClassSelector(ICSSParser.ClassSelectorContext ctx) {
+        ClassSelector classSelector = (ClassSelector) currentContainer.pop();
+        currentContainer.peek().addChild(classSelector);
+    }
+
+    @Override
+    public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
+        IdSelector idSelector = new IdSelector(ctx.getText());
+        currentContainer.push(idSelector);
+    }
+
+    @Override
+    public void exitIdSelector(ICSSParser.IdSelectorContext ctx) {
+        IdSelector idSelector = (IdSelector) currentContainer.pop();
+        currentContainer.peek().addChild(idSelector);
+    }
 }
