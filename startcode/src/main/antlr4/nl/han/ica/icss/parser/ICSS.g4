@@ -65,7 +65,7 @@ idSelector: ID_IDENT;
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
-ifStatement: IF BOX_BRACKET_OPEN (variableName | (TRUE | FALSE)) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableName)*  CLOSE_BRACE elseStatement?;
+ifStatement: IF BOX_BRACKET_OPEN (variableName | (TRUE | FALSE)) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
 elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
 
 
