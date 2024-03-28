@@ -59,6 +59,18 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
+    public void enterStyleTag(ICSSParser.StyleTagContext ctx) {
+        PropertyName propertyName = new PropertyName(ctx.getText());
+        currentContainer.push(propertyName);
+    }
+
+    @Override
+    public void exitStyleTag(ICSSParser.StyleTagContext ctx) {
+        PropertyName propertyName = (PropertyName) currentContainer.pop();
+        currentContainer.peek().addChild(propertyName);
+    }
+
+    @Override
     public void exitStyleDeclaration(ICSSParser.StyleDeclarationContext ctx) {
         Declaration declaration = (Declaration) currentContainer.pop();
         currentContainer.peek().addChild(declaration);
@@ -131,7 +143,7 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void exitVariableAssignment (ICSSParser.VariableAssignmentContext ctx) {
+    public void exitVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
         VariableAssignment variableAssignment = (VariableAssignment) currentContainer.pop();
         currentContainer.peek().addChild(variableAssignment);
     }
