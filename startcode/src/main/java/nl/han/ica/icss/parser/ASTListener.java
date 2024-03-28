@@ -7,6 +7,7 @@ import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * This class extracts the ICSS Abstract Syntax Tree from the Antlr Parse tree.
@@ -195,7 +196,6 @@ public class ASTListener extends ICSSBaseListener {
         currentContainer.peek().addChild(ifClause);
     }
 
-
     @Override
     public void enterElseStatement(ICSSParser.ElseStatementContext ctx) {
         ASTNode elseClause = new ElseClause();
@@ -207,4 +207,26 @@ public class ASTListener extends ICSSBaseListener {
         ASTNode elseClause = currentContainer.pop();
         currentContainer.peek().addChild(elseClause);
     }
+
+    @Override
+    public void enterEveryRule(ParserRuleContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
+                VariableReference variableReference = new VariableReference(ctx.getChild(0).getText());
+                currentContainer.push(variableReference);
+            }
+        }
+    }
+
+    @Override
+    public void exitEveryRule(ParserRuleContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
+                VariableReference variableReference = (VariableReference) currentContainer.pop();
+                currentContainer.peek().addChild(variableReference);
+            }
+        }
+    }
+
+
 }
