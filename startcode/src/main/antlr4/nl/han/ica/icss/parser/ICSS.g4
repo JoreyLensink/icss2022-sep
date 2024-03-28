@@ -57,7 +57,11 @@ literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral |
 styleTag: LOWER_IDENT;
 variableName: CAPITAL_IDENT;
 variableAssignment: variableName ASSIGNMENT_OPERATOR literal SEMICOLON;
-selector: (ID_IDENT | CLASS_IDENT | LOWER_IDENT);
+
+selector: (tagSelector | classSelector | idSelector);
+tagSelector: LOWER_IDENT;
+classSelector: CLASS_IDENT;
+idSelector: ID_IDENT;
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
