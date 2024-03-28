@@ -4,32 +4,28 @@ AdjustColor := TRUE;
 UseLinkColor := FALSE;
 
 p {
-	background-color: #ffffff;
-	width: ParWidth;
-	length: 20px + 20px * 10px;
-	if[AdjustColor] {
-	    color: #124532;
-	    if[UseLinkColor]{
-	        background-color: LinkColor;
-	    } else {
-	        background-color: #000000;
-	        if[UseLinkColor]{
-            	        background-color: LinkColor;
-            }
-	    }
-	}
-	height: 20px;
+    background-color: #ffffff;
+    width: ParWidth;
+    if[AdjustColor] {
+        color: #124532;
+        if[UseLinkColor]{
+            background-color: LinkColor;
+        } else {
+            background-color: #000000;
+        }
+    }
+    height: 20px;
 }
 a {
-	color: LinkColor;
+    color: LinkColor;
 }
 
 #menu {
-	width: ParWidth + 20px;
+    width: ParWidth + 20px;
 }
 
 .menu {
-	color: #000000;
+    color: #000000;
     background-color: LinkColor;
 
 }
