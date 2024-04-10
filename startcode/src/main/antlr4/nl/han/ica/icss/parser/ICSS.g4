@@ -44,7 +44,16 @@ ASSIGNMENT_OPERATOR: ':=';
 // Self added
 OPEN_PAREN: '(';
 CLOSE_PAREN: ')';
-DIV: '/';
+
+// binary operators
+SMALER: '<';
+SMALER_EQUAL: '<=';
+GREATER: '>';
+GREATER_EQUAL: '>=';
+EQUAL: '==';
+NOT_EQUAL: '!=';
+AND: '&&';
+OR: '||';
 
 
 //--- PARSER: ---
