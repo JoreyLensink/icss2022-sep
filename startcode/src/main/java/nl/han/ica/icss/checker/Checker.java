@@ -199,7 +199,9 @@ public class Checker {
     }
 
     private void checkBoolExpression(Expression conditionalExpression) {
-        checkBoolCheck((BoolCheck) conditionalExpression.getChildren().get(0));
+        if (conditionalExpression instanceof BoolCheck) {
+            checkBoolCheck((BoolCheck) conditionalExpression.getChildren().get(0));
+        }
     }
 
     private void checkBoolCheck(BoolCheck boolCheck) {
@@ -209,8 +211,6 @@ public class Checker {
         if (left != right) {
             boolCheck.setError("Both sides of the boolean check must be of the same type.");
         }
-
-
     }
 
     private void checkElseClause(ElseClause elseClause) {
