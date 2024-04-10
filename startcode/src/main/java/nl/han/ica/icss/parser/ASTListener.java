@@ -266,4 +266,28 @@ public class ASTListener extends ICSSBaseListener {
         IdSelector idSelector = (IdSelector) currentContainer.pop();
         currentContainer.peek().addChild(idSelector);
     }
+
+    @Override
+    public void enterBoolExpression(ICSSParser.BoolExpressionContext ctx) {
+        Expression boolExpression = new BoolExpression();
+        currentContainer.push(boolExpression);
+    }
+
+    @Override
+    public void exitBoolExpression(ICSSParser.BoolExpressionContext ctx) {
+        Expression boolExpression = (Expression) currentContainer.pop();
+        currentContainer.peek().addChild(boolExpression);
+    }
+
+    @Override
+    public void enterBoolCheck(ICSSParser.BoolCheckContext ctx) {
+        BoolCheck boolCheck = new BoolCheck();
+        currentContainer.push(boolCheck);
+    }
+
+    @Override
+    public void exitBoolCheck(ICSSParser.BoolCheckContext ctx) {
+        BoolCheck boolCheck = (BoolCheck) currentContainer.pop();
+        currentContainer.peek().addChild(boolCheck);
+    }
 }

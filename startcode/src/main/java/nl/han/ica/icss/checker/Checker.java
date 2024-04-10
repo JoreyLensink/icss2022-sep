@@ -182,9 +182,12 @@ public class Checker {
         Expression conditionalExpression = ifClause.getConditionalExpression();
         ExpressionType expressionType = checkExpressionType(conditionalExpression);
 
-        if (expressionType != ExpressionType.BOOL) {
-            ifClause.setError("Conditional must be a boolean.");
+
+        if (expressionType != ExpressionType.BOOL && !(conditionalExpression instanceof BoolExpression)) {
+            ifClause.setError("Conditional must be a boolean or BooleanExpression.");
         }
+
+        checkBoolExpression(ifClause.getConditionalExpression());
 
         checkRuleBody(ifClause.body);
 
@@ -193,6 +196,21 @@ public class Checker {
         if (ifClause.getElseClause() != null) {
             checkElseClause(ifClause.getElseClause());
         }
+    }
+
+    private void checkBoolExpression(Expression conditionalExpression) {
+        checkBoolCheck((BoolCheck) conditionalExpression.getChildren().get(0));
+    }
+
+    private void checkBoolCheck(BoolCheck boolCheck) {
+        ExpressionType left = boolCheck.lhs instanceof Operation ? checkOperation((Operation) boolCheck.lhs) : checkExpressionType(boolCheck.lhs);
+        ExpressionType right = boolCheck.rhs instanceof Operation ? checkOperation((Operation) boolCheck.rhs) : checkExpressionType(boolCheck.rhs);
+
+        if (left != right) {
+            boolCheck.setError("Both sides of the boolean check must be of the same type.");
+        }
+
+
     }
 
     private void checkElseClause(ElseClause elseClause) {

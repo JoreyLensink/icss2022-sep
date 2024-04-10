@@ -73,7 +73,7 @@ classSelector: CLASS_IDENT;
 idSelector: ID_IDENT;
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
-boolExpression: (literal | variableName | TRUE | FALSE) | boolExpression (AND | OR) boolExpression | boolCheck;
+boolExpression: (variableName | TRUE | FALSE) | boolExpression (AND | OR) boolExpression | boolCheck;
 boolCheck: (literal | variableName) (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) (literal | variableName);
 
 ifStatement: IF BOX_BRACKET_OPEN boolExpression BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
