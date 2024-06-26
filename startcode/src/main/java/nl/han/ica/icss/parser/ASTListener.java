@@ -3,10 +3,8 @@ package nl.han.ica.icss.parser;
 import nl.han.ica.datastructures.HANStack;
 import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.*;
+import nl.han.ica.icss.ast.operations.*;
 import nl.han.ica.icss.ast.literals.*;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
@@ -175,6 +173,23 @@ public class ASTListener extends ICSSBaseListener {
             } else if (ctx.MUL() != null) {
                 operation = new MultiplyOperation();
             }
+            // Booleans
+            else if (ctx.SMALLER() != null) {
+                operation = new SmallerOperation();
+            } else if (ctx.GREATER() != null) {
+                operation = new GreaterOperation();
+            } else if (ctx.EQUAL() != null) {
+                operation = new EqualOperation();
+            } else if (ctx.AND() != null) {
+                operation = new AndOperation();
+            } else if (ctx.OR() != null) {
+                operation = new OrOperation();
+            } else if (ctx.SMALLER_EQUAL() != null) {
+                operation = new SmallerEqualOperation();
+            } else if (ctx.GREATER_EQUAL() != null) {
+                operation = new GreaterEqualOperation();
+            }
+
             currentContainer.push(operation);
         }
     }

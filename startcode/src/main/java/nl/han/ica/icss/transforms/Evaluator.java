@@ -7,6 +7,7 @@ import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
+import nl.han.ica.icss.ast.operations.SmallerEqualOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 
 import java.util.ArrayList;
@@ -79,6 +80,8 @@ public class Evaluator implements Transform {
             return getVariableLiteral(((VariableReference) expression).name, variableValues);
         } else if (expression instanceof Literal) {
             return (Literal) expression;
+        } else if (expression instanceof BoolLiteral) {
+            return (BoolLiteral) expression;
         }
         return null;
     }
@@ -117,22 +120,44 @@ public class Evaluator implements Transform {
 
     private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
         ifClause.conditionalExpression = applyExpression(ifClause.conditionalExpression);
+        applyIfBoolExpression(ifClause);
+
 
         if (ifClause.conditionalExpression != null && ((BoolLiteral) ifClause.conditionalExpression).value) {
             if (ifClause.elseClause != null) {
                 ifClause.elseClause.body = new ArrayList<>();
-            }
-        } else {
-            if (ifClause.elseClause == null) {
-                ifClause.body = new ArrayList<>();
             } else {
-                ifClause.body = ifClause.elseClause.body;
-                ifClause.elseClause.body = new ArrayList<>();
+                if (ifClause.elseClause == null) {
+                    ifClause.body = new ArrayList<>();
+                } else {
+                    ifClause.body = ifClause.elseClause.body;
+                    ifClause.elseClause.body = new ArrayList<>();
+                }
+            }
+            for (ASTNode child : ifClause.getChildren()) {
+                applyStyleruleBody(child, parent);
             }
         }
-        for (ASTNode child : ifClause.getChildren()) {
-            applyStyleruleBody(child, parent);
+    }
+
+    private void applyIfBoolExpression(IfClause ifClause) {
+        if (ifClause.conditionalExpression instanceof BoolCheck) {
+            ifClause.conditionalExpression = applyBoolCheck((BoolCheck) ifClause.conditionalExpression);
         }
+
+    }
+
+    private Expression applyBoolCheck(BoolCheck boolCheck) {
+        if (boolCheck instanceof SmallerEqualOperation) {
+        }
+
+        if (boolCheck.lhs instanceof VariableReference) {
+            boolCheck.lhs = getVariableLiteral(((VariableReference) boolCheck.lhs).name, variableValues);
+        }
+        if (boolCheck.rhs instanceof VariableReference) {
+            boolCheck.rhs = getVariableLiteral(((VariableReference) boolCheck.rhs).name, variableValues);
+        }
+        return boolCheck;
     }
 
     private void applyDeclaration(Declaration declaration) {
