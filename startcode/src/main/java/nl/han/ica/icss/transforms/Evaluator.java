@@ -34,12 +34,15 @@ public class Evaluator implements Transform {
                 checkedNodes.add(child);
             }
         }
-        variableValues.removeFirst();
+        // Only remove checkNodes that are VariableAssignments
         checkedNodes.forEach(styleSheet::removeChild);
+
+        variableValues.removeFirst();
     }
 
     private void applyStylerule(Stylerule rule) {
         variableValues.addFirst(new HashMap<>());
+
         ArrayList<ASTNode> nodesToAdd = new ArrayList<>();
         for (ASTNode body : rule.body) {
             applyStyleruleBody(body, nodesToAdd);
@@ -55,14 +58,15 @@ public class Evaluator implements Transform {
         } else if (body instanceof VariableAssignment) {
             applyVariableAssignment((VariableAssignment) body);
         } else if (body instanceof IfClause) {
+            System.out.println("Applying IfClause");
             applyIfClause((IfClause) body, parent);
         }
     }
 
     private void applyVariableAssignment(VariableAssignment variableAssignment) {
-        variableAssignment.expression = applyExpression(variableAssignment.expression);
-        if (variableAssignment.expression != null) {
-            variableValues.getFirst().put(variableAssignment.name.name, (Literal) variableAssignment.expression);
+        Literal evaluatedExpression = applyExpression(variableAssignment.expression);
+        if (evaluatedExpression != null) {
+            variableValues.getFirst().put(variableAssignment.name.name, evaluatedExpression);
         }
     }
 
@@ -80,17 +84,19 @@ public class Evaluator implements Transform {
             return applyBoolExpression((BoolExpression) expression);
         } else if (expression instanceof BoolCheck) {
             return applyBoolCheck((BoolCheck) expression);
+        } else {
+            System.out.println("Unsupported expression type: " + expression.getClass().getName());
+            return null;
         }
-        System.out.println("Expression not found: " + expression.getClass().getName());
-        return null;
     }
 
     private Literal applyOperation(Operation operation) {
-        if (operation.lhs == null || operation.rhs == null) {
-            return null;
-        }
         Literal left = applyExpression(operation.lhs);
         Literal right = applyExpression(operation.rhs);
+
+        if (left == null || right == null) {
+            return null;
+        }
 
         int leftValue = getLiteralValue(left);
         int rightValue = getLiteralValue(right);
@@ -100,52 +106,59 @@ public class Evaluator implements Transform {
         } else if (operation instanceof SubtractOperation) {
             return createLiteral(left, leftValue - rightValue);
         } else if (operation instanceof MultiplyOperation) {
-            if (left instanceof ScalarLiteral) {
-                return createLiteral(right, leftValue * rightValue);
-            } else {
-                return createLiteral(left, leftValue * rightValue);
-            }
+            return createLiteral(left, leftValue * rightValue);
+        } else {
+            System.out.println("Unsupported operation: " + operation.getClass().getName());
+            return null;
         }
-        return null;
     }
 
     private Literal applyBoolExpression(BoolExpression expression) {
-        if (expression.lhs == null || expression.rhs == null) {
-            return null;
-        }
         Literal left = applyExpression(expression.lhs);
         Literal right = applyExpression(expression.rhs);
 
-        boolean result = false;
-        if (expression instanceof AndOperation) {
-            result = ((BoolLiteral) left).value && ((BoolLiteral) right).value;
-        } else if (expression instanceof OrOperation) {
-            result = ((BoolLiteral) left).value || ((BoolLiteral) right).value;
+        if (left instanceof BoolLiteral && right instanceof BoolLiteral) {
+            boolean leftValue = ((BoolLiteral) left).value;
+            boolean rightValue = ((BoolLiteral) right).value;
+
+            if (expression instanceof AndOperation) {
+                return new BoolLiteral(leftValue && rightValue);
+            } else if (expression instanceof OrOperation) {
+                return new BoolLiteral(leftValue || rightValue);
+            }
         }
 
-        return new BoolLiteral(result);
+        System.out.println("Unsupported boolean expression: " + expression.getClass().getName());
+        return null;
     }
 
     private Literal applyBoolCheck(BoolCheck boolCheck) {
-        if (boolCheck.lhs == null || boolCheck.rhs == null) {
-            return null;
-        }
         Literal left = applyExpression(boolCheck.lhs);
         Literal right = applyExpression(boolCheck.rhs);
 
-        boolean result = false;
-        if (boolCheck instanceof SmallerEqualOperation) {
-            result = getLiteralValue(left) <= getLiteralValue(right);
-        } else if (boolCheck instanceof EqualOperation) {
-            result = getLiteralValue(left) == getLiteralValue(right);
-        } else if (boolCheck instanceof SmallerOperation) {
-            result = getLiteralValue(left) < getLiteralValue(right);
-        } else if (boolCheck instanceof GreaterOperation) {
-            result = getLiteralValue(left) > getLiteralValue(right);
-        } else if (boolCheck instanceof GreaterEqualOperation) {
-            result = getLiteralValue(left) >= getLiteralValue(right);
+        if (left == null || right == null) {
+            return null;
+        }
+
+        int leftValue = getLiteralValue(left);
+        int rightValue = getLiteralValue(right);
+        boolean result;
+
+        if (boolCheck instanceof EqualOperation) {
+            result = leftValue == rightValue;
         } else if (boolCheck instanceof NotEqualOperation) {
-            result = getLiteralValue(left) != getLiteralValue(right);
+            result = leftValue != rightValue;
+        } else if (boolCheck instanceof GreaterOperation) {
+            result = leftValue > rightValue;
+        } else if (boolCheck instanceof GreaterEqualOperation) {
+            result = leftValue >= rightValue;
+        } else if (boolCheck instanceof SmallerOperation) {
+            result = leftValue < rightValue;
+        } else if (boolCheck instanceof SmallerEqualOperation) {
+            result = leftValue <= rightValue;
+        } else {
+            System.out.println("Unsupported boolean check: " + boolCheck.getClass().getName());
+            return null;
         }
 
         return new BoolLiteral(result);
@@ -158,15 +171,21 @@ public class Evaluator implements Transform {
                 return variable;
             }
         }
+        System.out.println("Variable '" + variableReference + "' not found in current scope.");
         return null;
     }
 
     private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
-        if (ifClause.conditionalExpression == null) {
+        Literal condition = applyExpression(ifClause.conditionalExpression);
+
+        if (!(condition instanceof BoolLiteral)) {
+            System.out.println("IfClause condition is not a boolean");
             return;
         }
-        Literal condition = applyExpression(ifClause.conditionalExpression);
-        if (condition instanceof BoolLiteral && ((BoolLiteral) condition).value) {
+
+        boolean conditionValue = ((BoolLiteral) condition).value;
+
+        if (conditionValue) {
             for (ASTNode child : ifClause.body) {
                 applyStyleruleBody(child, parent);
             }
@@ -178,9 +197,6 @@ public class Evaluator implements Transform {
     }
 
     private void applyDeclaration(Declaration declaration) {
-        if (declaration.expression == null) {
-            return;
-        }
         declaration.expression = applyExpression(declaration.expression);
     }
 
@@ -193,8 +209,10 @@ public class Evaluator implements Transform {
             return ((PercentageLiteral) literal).value;
         } else if (literal instanceof BoolLiteral) {
             return ((BoolLiteral) literal).value ? 1 : 0;
+        } else {
+            System.out.println("Unsupported literal type: " + literal.getClass().getName());
+            return 0;
         }
-        return 0;
     }
 
     private Literal createLiteral(Literal literal, int value) {
@@ -204,7 +222,9 @@ public class Evaluator implements Transform {
             return new ScalarLiteral(value);
         } else if (literal instanceof PercentageLiteral) {
             return new PercentageLiteral(value);
+        } else {
+            System.out.println("Unsupported literal type for creating: " + literal.getClass().getName());
+            return null;
         }
-        return null;
     }
 }
