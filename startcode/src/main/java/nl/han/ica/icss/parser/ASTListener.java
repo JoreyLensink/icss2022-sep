@@ -173,23 +173,6 @@ public class ASTListener extends ICSSBaseListener {
             } else if (ctx.MUL() != null) {
                 operation = new MultiplyOperation();
             }
-            // Booleans
-            else if (ctx.SMALLER() != null) {
-                operation = new SmallerOperation();
-            } else if (ctx.GREATER() != null) {
-                operation = new GreaterOperation();
-            } else if (ctx.EQUAL() != null) {
-                operation = new EqualOperation();
-            } else if (ctx.AND() != null) {
-                operation = new AndOperation();
-            } else if (ctx.OR() != null) {
-                operation = new OrOperation();
-            } else if (ctx.SMALLER_EQUAL() != null) {
-                operation = new SmallerEqualOperation();
-            } else if (ctx.GREATER_EQUAL() != null) {
-                operation = new GreaterEqualOperation();
-            }
-
             currentContainer.push(operation);
         }
     }
@@ -200,6 +183,43 @@ public class ASTListener extends ICSSBaseListener {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
         }
+    }
+
+    @Override
+    public void enterBoolExpression(ICSSParser.BoolExpressionContext ctx) {
+        BoolExpression boolExpression = new BoolExpression();
+        currentContainer.push(boolExpression);
+    }
+
+    @Override
+    public void exitBoolExpression(ICSSParser.BoolExpressionContext ctx) {
+        BoolExpression boolExpression = (BoolExpression) currentContainer.pop();
+        currentContainer.peek().addChild(boolExpression);
+    }
+
+    @Override
+    public void enterBoolCheck(ICSSParser.BoolCheckContext ctx) {
+        ASTNode operation = null;
+        if (ctx.SMALLER() != null) {
+            operation = new SmallerOperation();
+        } else if (ctx.GREATER() != null) {
+            operation = new GreaterOperation();
+        } else if (ctx.EQUAL() != null) {
+            operation = new EqualOperation();
+        } else if (ctx.NOT_EQUAL() != null) {
+            operation = new NotEqualOperation();
+        } else if (ctx.SMALLER_EQUAL() != null) {
+            operation = new SmallerEqualOperation();
+        } else if (ctx.GREATER_EQUAL() != null) {
+            operation = new GreaterEqualOperation();
+        }
+        currentContainer.push(operation);
+    }
+
+    @Override
+    public void exitBoolCheck(ICSSParser.BoolCheckContext ctx) {
+        Operation boolCheck = (Operation) currentContainer.pop();
+        currentContainer.peek().addChild(boolCheck);
     }
 
     @Override
@@ -226,37 +246,6 @@ public class ASTListener extends ICSSBaseListener {
         currentContainer.peek().addChild(elseClause);
     }
 
-    @Override
-    public void enterEveryRule(ParserRuleContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
-                VariableReference variableReference = new VariableReference(ctx.getChild(0).getText());
-                currentContainer.push(variableReference);
-            }
-        }
-    }
-
-    @Override
-    public void exitEveryRule(ParserRuleContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
-                VariableReference variableReference = (VariableReference) currentContainer.pop();
-                currentContainer.peek().addChild(variableReference);
-            }
-        }
-    }
-
-    @Override
-    public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
-        TagSelector tagSelector = new TagSelector(ctx.getText());
-        currentContainer.push(tagSelector);
-    }
-
-    @Override
-    public void exitTagSelector(ICSSParser.TagSelectorContext ctx) {
-        TagSelector tagSelector = (TagSelector) currentContainer.pop();
-        currentContainer.peek().addChild(tagSelector);
-    }
 
     @Override
     public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
@@ -283,26 +272,46 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterBoolExpression(ICSSParser.BoolExpressionContext ctx) {
-        Expression boolExpression = new BoolExpression();
-        currentContainer.push(boolExpression);
+    public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
+        TagSelector tagSelector = new TagSelector(ctx.getText());
+        currentContainer.push(tagSelector);
     }
 
     @Override
-    public void exitBoolExpression(ICSSParser.BoolExpressionContext ctx) {
-        Expression boolExpression = (Expression) currentContainer.pop();
-        currentContainer.peek().addChild(boolExpression);
+    public void exitTagSelector(ICSSParser.TagSelectorContext ctx) {
+        TagSelector tagSelector = (TagSelector) currentContainer.pop();
+        currentContainer.peek().addChild(tagSelector);
     }
 
     @Override
-    public void enterBoolCheck(ICSSParser.BoolCheckContext ctx) {
-        BoolCheck boolCheck = new BoolCheck();
-        currentContainer.push(boolCheck);
+    public void enterBoolLiteral(ICSSParser.BoolLiteralContext ctx) {
+        BoolLiteral boolLiteral = new BoolLiteral(ctx.getText());
+        currentContainer.push(boolLiteral);
     }
 
     @Override
-    public void exitBoolCheck(ICSSParser.BoolCheckContext ctx) {
-        BoolCheck boolCheck = (BoolCheck) currentContainer.pop();
-        currentContainer.peek().addChild(boolCheck);
+    public void exitBoolLiteral(ICSSParser.BoolLiteralContext ctx) {
+        BoolLiteral boolLiteral = (BoolLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(boolLiteral);
+    }
+
+    @Override
+    public void enterEveryRule(ParserRuleContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
+                VariableReference variableReference = new VariableReference(ctx.getChild(0).getText());
+                currentContainer.push(variableReference);
+            }
+        }
+    }
+
+    @Override
+    public void exitEveryRule(ParserRuleContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
+                VariableReference variableReference = (VariableReference) currentContainer.pop();
+                currentContainer.peek().addChild(variableReference);
+            }
+        }
     }
 }

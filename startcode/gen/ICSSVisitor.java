@@ -29,45 +29,87 @@ public interface ICSSVisitor<T> extends ParseTreeVisitor<T> {
 	T visitStyleDeclaration(ICSSParser.StyleDeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code scalarLiteral}
-	 * labeled alternative in {@link ICSSParser#value}.
+	 * labeled alternative in {@link ICSSParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitScalarLiteral(ICSSParser.ScalarLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code pixelLiteral}
-	 * labeled alternative in {@link ICSSParser#value}.
+	 * labeled alternative in {@link ICSSParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPixelLiteral(ICSSParser.PixelLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code colorLiteral}
-	 * labeled alternative in {@link ICSSParser#value}.
+	 * labeled alternative in {@link ICSSParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitColorLiteral(ICSSParser.ColorLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code percentageLiteral}
-	 * labeled alternative in {@link ICSSParser#value}.
+	 * labeled alternative in {@link ICSSParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPercentageLiteral(ICSSParser.PercentageLiteralContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code booleanLiteral}
-	 * labeled alternative in {@link ICSSParser#value}.
+	 * labeled alternative in {@link ICSSParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBooleanLiteral(ICSSParser.BooleanLiteralContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ICSSParser#varDeclaration}.
+	 * Visit a parse tree produced by {@link ICSSParser#boolLiteral}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVarDeclaration(ICSSParser.VarDeclarationContext ctx);
+	T visitBoolLiteral(ICSSParser.BoolLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#styleTag}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStyleTag(ICSSParser.StyleTagContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#variableName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariableName(ICSSParser.VariableNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#variableAssignment}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariableAssignment(ICSSParser.VariableAssignmentContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#selector}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelector(ICSSParser.SelectorContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#tagSelector}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTagSelector(ICSSParser.TagSelectorContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#classSelector}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClassSelector(ICSSParser.ClassSelectorContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#idSelector}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIdSelector(ICSSParser.IdSelectorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ICSSParser#expression}.
 	 * @param ctx the parse tree
@@ -75,21 +117,27 @@ public interface ICSSVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpression(ICSSParser.ExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ICSSParser#term}.
+	 * Visit a parse tree produced by {@link ICSSParser#boolExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTerm(ICSSParser.TermContext ctx);
+	T visitBoolExpression(ICSSParser.BoolExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ICSSParser#factor}.
+	 * Visit a parse tree produced by {@link ICSSParser#boolCheck}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFactor(ICSSParser.FactorContext ctx);
+	T visitBoolCheck(ICSSParser.BoolCheckContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ICSSParser#ifStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitIfStatement(ICSSParser.IfStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#elseStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitElseStatement(ICSSParser.ElseStatementContext ctx);
 }

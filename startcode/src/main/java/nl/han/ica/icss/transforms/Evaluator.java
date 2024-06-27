@@ -1,14 +1,8 @@
 package nl.han.ica.icss.transforms;
 
 import nl.han.ica.icss.ast.*;
-import nl.han.ica.icss.ast.literals.BoolLiteral;
-import nl.han.ica.icss.ast.literals.PercentageLiteral;
-import nl.han.ica.icss.ast.literals.PixelLiteral;
-import nl.han.ica.icss.ast.literals.ScalarLiteral;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SmallerEqualOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
+import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,28 +59,36 @@ public class Evaluator implements Transform {
         }
     }
 
-
     private void applyVariableAssignment(VariableAssignment variableAssignment) {
         variableAssignment.expression = applyExpression(variableAssignment.expression);
-
-        variableValues.getFirst().put(variableAssignment.name.name, (Literal) variableAssignment.expression);
+        if (variableAssignment.expression != null) {
+            variableValues.getFirst().put(variableAssignment.name.name, (Literal) variableAssignment.expression);
+        }
     }
 
-
     private Literal applyExpression(Expression expression) {
+        if (expression == null) {
+            return null;
+        }
         if (expression instanceof Operation) {
             return applyOperation((Operation) expression);
         } else if (expression instanceof VariableReference) {
-            return getVariableLiteral(((VariableReference) expression).name, variableValues);
+            return getVariableLiteral(((VariableReference) expression).name);
         } else if (expression instanceof Literal) {
             return (Literal) expression;
-        } else if (expression instanceof BoolLiteral) {
-            return (BoolLiteral) expression;
+        } else if (expression instanceof BoolExpression) {
+            return applyBoolExpression((BoolExpression) expression);
+        } else if (expression instanceof BoolCheck) {
+            return applyBoolCheck((BoolCheck) expression);
         }
+        System.out.println("Expression not found: " + expression.getClass().getName());
         return null;
     }
 
     private Literal applyOperation(Operation operation) {
+        if (operation.lhs == null || operation.rhs == null) {
+            return null;
+        }
         Literal left = applyExpression(operation.lhs);
         Literal right = applyExpression(operation.rhs);
 
@@ -107,7 +109,49 @@ public class Evaluator implements Transform {
         return null;
     }
 
-    private Literal getVariableLiteral(String variableReference, LinkedList<HashMap<String, Literal>> variableValues) {
+    private Literal applyBoolExpression(BoolExpression expression) {
+        if (expression.lhs == null || expression.rhs == null) {
+            return null;
+        }
+        Literal left = applyExpression(expression.lhs);
+        Literal right = applyExpression(expression.rhs);
+
+        boolean result = false;
+        if (expression instanceof AndOperation) {
+            result = ((BoolLiteral) left).value && ((BoolLiteral) right).value;
+        } else if (expression instanceof OrOperation) {
+            result = ((BoolLiteral) left).value || ((BoolLiteral) right).value;
+        }
+
+        return new BoolLiteral(result);
+    }
+
+    private Literal applyBoolCheck(BoolCheck boolCheck) {
+        if (boolCheck.lhs == null || boolCheck.rhs == null) {
+            return null;
+        }
+        Literal left = applyExpression(boolCheck.lhs);
+        Literal right = applyExpression(boolCheck.rhs);
+
+        boolean result = false;
+        if (boolCheck instanceof SmallerEqualOperation) {
+            result = getLiteralValue(left) <= getLiteralValue(right);
+        } else if (boolCheck instanceof EqualOperation) {
+            result = getLiteralValue(left) == getLiteralValue(right);
+        } else if (boolCheck instanceof SmallerOperation) {
+            result = getLiteralValue(left) < getLiteralValue(right);
+        } else if (boolCheck instanceof GreaterOperation) {
+            result = getLiteralValue(left) > getLiteralValue(right);
+        } else if (boolCheck instanceof GreaterEqualOperation) {
+            result = getLiteralValue(left) >= getLiteralValue(right);
+        } else if (boolCheck instanceof NotEqualOperation) {
+            result = getLiteralValue(left) != getLiteralValue(right);
+        }
+
+        return new BoolLiteral(result);
+    }
+
+    private Literal getVariableLiteral(String variableReference) {
         for (HashMap<String, Literal> variableValue : variableValues) {
             Literal variable = variableValue.get(variableReference);
             if (variable != null) {
@@ -117,50 +161,26 @@ public class Evaluator implements Transform {
         return null;
     }
 
-
     private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
-        ifClause.conditionalExpression = applyExpression(ifClause.conditionalExpression);
-        applyIfBoolExpression(ifClause);
-
-
-        if (ifClause.conditionalExpression != null && ((BoolLiteral) ifClause.conditionalExpression).value) {
-            if (ifClause.elseClause != null) {
-                ifClause.elseClause.body = new ArrayList<>();
-            } else {
-                if (ifClause.elseClause == null) {
-                    ifClause.body = new ArrayList<>();
-                } else {
-                    ifClause.body = ifClause.elseClause.body;
-                    ifClause.elseClause.body = new ArrayList<>();
-                }
+        if (ifClause.conditionalExpression == null) {
+            return;
+        }
+        Literal condition = applyExpression(ifClause.conditionalExpression);
+        if (condition instanceof BoolLiteral && ((BoolLiteral) condition).value) {
+            for (ASTNode child : ifClause.body) {
+                applyStyleruleBody(child, parent);
             }
-            for (ASTNode child : ifClause.getChildren()) {
+        } else if (ifClause.elseClause != null) {
+            for (ASTNode child : ifClause.elseClause.body) {
                 applyStyleruleBody(child, parent);
             }
         }
     }
 
-    private void applyIfBoolExpression(IfClause ifClause) {
-        if (ifClause.conditionalExpression instanceof BoolCheck) {
-            ifClause.conditionalExpression = applyBoolCheck((BoolCheck) ifClause.conditionalExpression);
-        }
-
-    }
-
-    private Expression applyBoolCheck(BoolCheck boolCheck) {
-        if (boolCheck instanceof SmallerEqualOperation) {
-        }
-
-        if (boolCheck.lhs instanceof VariableReference) {
-            boolCheck.lhs = getVariableLiteral(((VariableReference) boolCheck.lhs).name, variableValues);
-        }
-        if (boolCheck.rhs instanceof VariableReference) {
-            boolCheck.rhs = getVariableLiteral(((VariableReference) boolCheck.rhs).name, variableValues);
-        }
-        return boolCheck;
-    }
-
     private void applyDeclaration(Declaration declaration) {
+        if (declaration.expression == null) {
+            return;
+        }
         declaration.expression = applyExpression(declaration.expression);
     }
 
@@ -169,9 +189,12 @@ public class Evaluator implements Transform {
             return ((PixelLiteral) literal).value;
         } else if (literal instanceof ScalarLiteral) {
             return ((ScalarLiteral) literal).value;
-        } else {
+        } else if (literal instanceof PercentageLiteral) {
             return ((PercentageLiteral) literal).value;
+        } else if (literal instanceof BoolLiteral) {
+            return ((BoolLiteral) literal).value ? 1 : 0;
         }
+        return 0;
     }
 
     private Literal createLiteral(Literal literal, int value) {
@@ -179,8 +202,9 @@ public class Evaluator implements Transform {
             return new PixelLiteral(value);
         } else if (literal instanceof ScalarLiteral) {
             return new ScalarLiteral(value);
-        } else {
+        } else if (literal instanceof PercentageLiteral) {
             return new PercentageLiteral(value);
         }
+        return null;
     }
 }
