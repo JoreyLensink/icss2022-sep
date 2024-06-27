@@ -34,7 +34,7 @@ public class Evaluator implements Transform {
                 checkedNodes.add(child);
             }
         }
-        // Only remove checkNodes that are VariableAssignments
+        // Only remove checkedNodes that are VariableAssignments
         checkedNodes.forEach(styleSheet::removeChild);
 
         variableValues.removeFirst();
@@ -80,10 +80,10 @@ public class Evaluator implements Transform {
             return getVariableLiteral(((VariableReference) expression).name);
         } else if (expression instanceof Literal) {
             return (Literal) expression;
-        } else if (expression instanceof BoolExpression) {
-            return applyBoolExpression((BoolExpression) expression);
         } else if (expression instanceof BoolCheck) {
             return applyBoolCheck((BoolCheck) expression);
+        } else if (expression instanceof BoolExpression) {
+            return applyBoolExpression((BoolExpression) expression);
         } else {
             System.out.println("Unsupported expression type: " + expression.getClass().getName());
             return null;
@@ -125,16 +125,19 @@ public class Evaluator implements Transform {
                 return new BoolLiteral(leftValue && rightValue);
             } else if (expression instanceof OrOperation) {
                 return new BoolLiteral(leftValue || rightValue);
+            } else {
+                System.out.println("Unsupported boolean operation: " + expression.getClass().getName());
+                return null;
             }
+        } else {
+            System.out.println("Unsupported boolean expression: " + expression.getClass().getName());
+            return null;
         }
-
-        System.out.println("Unsupported boolean expression: " + expression.getClass().getName());
-        return null;
     }
 
-    private Literal applyBoolCheck(BoolCheck boolCheck) {
-        Literal left = applyExpression(boolCheck.lhs);
-        Literal right = applyExpression(boolCheck.rhs);
+    private Literal applyBoolCheck(BoolCheck expression) {
+        Literal left = applyExpression(expression.lhs);
+        Literal right = applyExpression(expression.rhs);
 
         if (left == null || right == null) {
             return null;
@@ -142,26 +145,23 @@ public class Evaluator implements Transform {
 
         int leftValue = getLiteralValue(left);
         int rightValue = getLiteralValue(right);
-        boolean result;
 
-        if (boolCheck instanceof EqualOperation) {
-            result = leftValue == rightValue;
-        } else if (boolCheck instanceof NotEqualOperation) {
-            result = leftValue != rightValue;
-        } else if (boolCheck instanceof GreaterOperation) {
-            result = leftValue > rightValue;
-        } else if (boolCheck instanceof GreaterEqualOperation) {
-            result = leftValue >= rightValue;
-        } else if (boolCheck instanceof SmallerOperation) {
-            result = leftValue < rightValue;
-        } else if (boolCheck instanceof SmallerEqualOperation) {
-            result = leftValue <= rightValue;
+        if (expression instanceof EqualOperation) {
+            return new BoolLiteral(leftValue == rightValue);
+        } else if (expression instanceof GreaterOperation) {
+            return new BoolLiteral(leftValue > rightValue);
+        } else if (expression instanceof GreaterEqualOperation) {
+            return new BoolLiteral(leftValue >= rightValue);
+        } else if (expression instanceof SmallerOperation) {
+            return new BoolLiteral(leftValue < rightValue);
+        } else if (expression instanceof SmallerEqualOperation) {
+            return new BoolLiteral(leftValue <= rightValue);
+        } else if (expression instanceof NotEqualOperation) {
+            return new BoolLiteral(leftValue != rightValue);
         } else {
-            System.out.println("Unsupported boolean check: " + boolCheck.getClass().getName());
+            System.out.println("Unsupported boolean check: " + expression.getClass().getName());
             return null;
         }
-
-        return new BoolLiteral(result);
     }
 
     private Literal getVariableLiteral(String variableReference) {
@@ -176,20 +176,30 @@ public class Evaluator implements Transform {
     }
 
     private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
-        Literal condition = applyExpression(ifClause.conditionalExpression);
-
-        if (!(condition instanceof BoolLiteral)) {
-            System.out.println("IfClause condition is not a boolean");
+        if (ifClause.conditionalExpression == null) {
+            System.out.println("IfClause has no condition");
             return;
         }
 
-        boolean conditionValue = ((BoolLiteral) condition).value;
+        if (!(ifClause.conditionalExpression instanceof BoolExpression)) {
+            System.out.println("IfClause condition is not a boolean expression");
+            return;
+        }
 
-        if (conditionValue) {
+        BoolLiteral condition = (BoolLiteral) applyExpression(ifClause.conditionalExpression);
+
+        if (condition == null) {
+            System.out.println("IfClause condition evaluation failed");
+            return;
+        }
+
+        if (condition.value) {
+            System.out.println("IfClause condition is true");
             for (ASTNode child : ifClause.body) {
                 applyStyleruleBody(child, parent);
             }
         } else if (ifClause.elseClause != null) {
+            System.out.println("IfClause condition is false");
             for (ASTNode child : ifClause.elseClause.body) {
                 applyStyleruleBody(child, parent);
             }
