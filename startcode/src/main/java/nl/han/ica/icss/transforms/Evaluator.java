@@ -58,7 +58,6 @@ public class Evaluator implements Transform {
         } else if (body instanceof VariableAssignment) {
             applyVariableAssignment((VariableAssignment) body);
         } else if (body instanceof IfClause) {
-            System.out.println("Applying IfClause");
             applyIfClause((IfClause) body, parent);
         }
     }
@@ -117,22 +116,22 @@ public class Evaluator implements Transform {
         Literal left = applyExpression(expression.lhs);
         Literal right = applyExpression(expression.rhs);
 
-        if (left instanceof BoolLiteral && right instanceof BoolLiteral) {
-            boolean leftValue = ((BoolLiteral) left).value;
-            boolean rightValue = ((BoolLiteral) right).value;
-
-            if (expression instanceof AndOperation) {
-                return new BoolLiteral(leftValue && rightValue);
-            } else if (expression instanceof OrOperation) {
-                return new BoolLiteral(leftValue || rightValue);
-            } else {
-                System.out.println("Unsupported boolean operation: " + expression.getClass().getName());
-                return null;
-            }
-        } else {
-            System.out.println("Unsupported boolean expression: " + expression.getClass().getName());
+        if (left == null || right == null) {
             return null;
         }
+
+        boolean leftValue = ((BoolLiteral) left).value;
+        boolean rightValue = ((BoolLiteral) right).value;
+
+        if (expression instanceof AndOperation) {
+            return new BoolLiteral(leftValue && rightValue);
+        } else if (expression instanceof OrOperation) {
+            return new BoolLiteral(leftValue || rightValue);
+        } else {
+            System.out.println("Unsupported boolean operation: " + expression.getClass().getName());
+            return null;
+        }
+
     }
 
     private Literal applyBoolCheck(BoolCheck expression) {
