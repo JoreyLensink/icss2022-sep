@@ -197,16 +197,6 @@ public interface ICSSListener extends ParseTreeListener {
 	 */
 	void exitBoolExpression(ICSSParser.BoolExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link ICSSParser#boolCheck}.
-	 * @param ctx the parse tree
-	 */
-	void enterBoolCheck(ICSSParser.BoolCheckContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ICSSParser#boolCheck}.
-	 * @param ctx the parse tree
-	 */
-	void exitBoolCheck(ICSSParser.BoolCheckContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link ICSSParser#ifStatement}.
 	 * @param ctx the parse tree
 	 */

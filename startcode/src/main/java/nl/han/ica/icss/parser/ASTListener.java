@@ -187,18 +187,25 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterBoolExpression(ICSSParser.BoolExpressionContext ctx) {
-        BoolExpression boolExpression = new BoolExpression();
-        currentContainer.push(boolExpression);
+        // Check if it's a boolean expression that requires a BoolExpression node (AND/OR expressions)
+        if (ctx.AND() != null || ctx.OR() != null) {
+            BoolExpression boolExpression = new BoolExpression();
+            currentContainer.push(boolExpression);
+        }
     }
 
     @Override
     public void exitBoolExpression(ICSSParser.BoolExpressionContext ctx) {
-        BoolExpression boolExpression = (BoolExpression) currentContainer.pop();
-        currentContainer.peek().addChild(boolExpression);
+        // Check if it's a boolean expression that requires a BoolExpression node (AND/OR expressions)
+        if (ctx.AND() != null || ctx.OR() != null) {
+            BoolExpression boolExpression = (BoolExpression) currentContainer.pop();
+            currentContainer.peek().addChild(boolExpression);
+        }
     }
 
     @Override
     public void enterBoolCheck(ICSSParser.BoolCheckContext ctx) {
+        // Create the appropriate operation node based on the comparison operator
         ASTNode operation = null;
         if (ctx.SMALLER() != null) {
             operation = new SmallerOperation();
@@ -218,8 +225,8 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void exitBoolCheck(ICSSParser.BoolCheckContext ctx) {
-        BoolCheck boolCheck = (BoolCheck) currentContainer.pop();
-        currentContainer.peek().addChild(boolCheck);
+        ASTNode operation = currentContainer.pop();
+        currentContainer.peek().addChild(operation);
     }
 
     @Override

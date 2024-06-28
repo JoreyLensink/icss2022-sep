@@ -232,18 +232,6 @@ public class ICSSBaseListener implements ICSSListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBoolCheck(ICSSParser.BoolCheckContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBoolCheck(ICSSParser.BoolCheckContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterIfStatement(ICSSParser.IfStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}

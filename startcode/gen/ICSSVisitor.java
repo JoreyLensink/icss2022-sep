@@ -123,12 +123,6 @@ public interface ICSSVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBoolExpression(ICSSParser.BoolExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ICSSParser#boolCheck}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBoolCheck(ICSSParser.BoolCheckContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link ICSSParser#ifStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

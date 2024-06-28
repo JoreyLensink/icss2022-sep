@@ -73,6 +73,8 @@ public class Checker {
     private ExpressionType checkExpression(Expression expression) {
         if (expression instanceof Operation) {
             return checkOperation((Operation) expression);
+        } else if (expression instanceof BoolExpression) {
+            return checkBoolExpression((BoolExpression) expression);
         } else {
             return getExpressionType(expression);
         }
@@ -90,6 +92,8 @@ public class Checker {
         } else if (expression instanceof ScalarLiteral) {
             return ExpressionType.SCALAR;
         } else if (expression instanceof BoolLiteral) {
+            return ExpressionType.BOOL;
+        } else if (expression instanceof BoolCheck) {
             return ExpressionType.BOOL;
         }
         return ExpressionType.UNDEFINED;
@@ -182,12 +186,11 @@ public class Checker {
         Expression conditionalExpression = ifClause.getConditionalExpression();
         ExpressionType expressionType = checkExpressionType(conditionalExpression);
 
-
-        if (expressionType != ExpressionType.BOOL && !(conditionalExpression instanceof BoolExpression)) {
+        if (!(conditionalExpression instanceof BoolCheck)) {
             ifClause.setError("Conditional must be a boolean or BooleanExpression.");
+        } else {
+            checkBoolCheck((BoolCheck) conditionalExpression);
         }
-
-        checkBoolExpression(ifClause.getConditionalExpression());
 
         checkRuleBody(ifClause.body);
 
@@ -198,10 +201,15 @@ public class Checker {
         }
     }
 
-    private void checkBoolExpression(Expression conditionalExpression) {
-        if (conditionalExpression instanceof BoolCheck) {
-            checkBoolCheck((BoolCheck) conditionalExpression.getChildren().get(0));
+    private ExpressionType checkBoolExpression(BoolExpression expression) {
+        ExpressionType left = checkExpression(expression.lhs);
+        ExpressionType right = checkExpression(expression.rhs);
+
+        if (left != ExpressionType.BOOL || right != ExpressionType.BOOL) {
+            expression.setError("Both sides of an AND/OR operation must be boolean expressions.");
+            return ExpressionType.UNDEFINED;
         }
+        return ExpressionType.BOOL;
     }
 
     private void checkBoolCheck(BoolCheck boolCheck) {

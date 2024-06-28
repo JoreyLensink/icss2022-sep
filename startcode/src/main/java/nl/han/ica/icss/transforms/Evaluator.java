@@ -81,8 +81,6 @@ public class Evaluator implements Transform {
             return (Literal) expression;
         } else if (expression instanceof BoolCheck) {
             return applyBoolCheck((BoolCheck) expression);
-        } else if (expression instanceof BoolExpression) {
-            return applyBoolExpression((BoolExpression) expression);
         } else {
             System.out.println("Unsupported expression type: " + expression.getClass().getName());
             return null;
@@ -110,28 +108,6 @@ public class Evaluator implements Transform {
             System.out.println("Unsupported operation: " + operation.getClass().getName());
             return null;
         }
-    }
-
-    private Literal applyBoolExpression(BoolExpression expression) {
-        Literal left = applyExpression(expression.lhs);
-        Literal right = applyExpression(expression.rhs);
-
-        if (left == null || right == null) {
-            return null;
-        }
-
-        boolean leftValue = ((BoolLiteral) left).value;
-        boolean rightValue = ((BoolLiteral) right).value;
-
-        if (expression instanceof AndOperation) {
-            return new BoolLiteral(leftValue && rightValue);
-        } else if (expression instanceof OrOperation) {
-            return new BoolLiteral(leftValue || rightValue);
-        } else {
-            System.out.println("Unsupported boolean operation: " + expression.getClass().getName());
-            return null;
-        }
-
     }
 
     private Literal applyBoolCheck(BoolCheck expression) {
@@ -180,7 +156,7 @@ public class Evaluator implements Transform {
             return;
         }
 
-        if (!(ifClause.conditionalExpression instanceof BoolExpression)) {
+        if (!(ifClause.conditionalExpression instanceof BoolCheck)) {
             System.out.println("IfClause condition is not a boolean expression");
             return;
         }
