@@ -41,10 +41,15 @@ MIN: '-';
 MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
-// Self added
-OPEN_PAREN: '(';
-CLOSE_PAREN: ')';
-DIV: '/';
+// Binary operators
+SMALLER: '<';
+SMALLER_EQUAL: '<=';
+GREATER: '>';
+GREATER_EQUAL: '>=';
+EQUAL: '==';
+NOT_EQUAL: '!=';
+AND: '&&';
+OR: '||';
 
 
 //--- PARSER: ---
@@ -52,7 +57,8 @@ stylesheet: variableAssignment* stylerule*;
 stylerule: selector OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
 styleDeclaration: styleTag COLON (literal | variableName | expression) SEMICOLON;
 
-literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | (TRUE  | FALSE ) #booleanLiteral;
+literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | booleanLiteral #boolLiteral;
+booleanLiteral: TRUE | FALSE;
 
 styleTag: LOWER_IDENT;
 variableName: CAPITAL_IDENT;
@@ -65,9 +71,8 @@ idSelector: ID_IDENT;
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
-ifStatement: IF BOX_BRACKET_OPEN (variableName | (TRUE | FALSE)) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
+booleanExpression : comparisonExpression #comparisonBooleanExpression | booleanExpression (AND | OR) booleanExpression #logicalBooleanExpression;
+comparisonExpression : expression (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) expression;
+
+ifStatement: IF BOX_BRACKET_OPEN (booleanExpression) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
 elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
-
-
-
-
