@@ -53,11 +53,11 @@ OR: '||';
 
 
 //--- PARSER: ---
-stylesheet: variableAssignment* stylerule*;
+stylesheet: variableAssignment* stylerule* EOF;
 stylerule: selector OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
 styleDeclaration: styleTag COLON (literal | variableName | expression) SEMICOLON;
 
-literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | booleanLiteral #booleaLiteral;
+literal: SCALAR #scalarLiteral | PIXELSIZE #pixelLiteral | COLOR #colorLiteral | PERCENTAGE #percentageLiteral | booleanLiteral #boolLiteral;
 booleanLiteral: TRUE | FALSE;
 
 styleTag: LOWER_IDENT;
@@ -71,8 +71,9 @@ idSelector: ID_IDENT;
 
 expression: (literal | variableName) | expression MUL expression | expression (PLUS | MIN) expression;
 
-booleanExpression : comparisonExpression #comparisonBooleanExpression | booleanExpression (AND | OR) booleanExpression #logicalBooleanExpression | booleanLiteral #booleanLiteralExpression;
+booleanExpression : comparisonExpression | booleanExpression (AND | OR) booleanExpression | booleanLiteral;
+
 comparisonExpression : expression (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) expression;
 
-ifStatement: IF BOX_BRACKET_OPEN (booleanExpression) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
+ifStatement: IF BOX_BRACKET_OPEN (booleanExpression | variableName) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
 elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
