@@ -4,13 +4,10 @@ import nl.han.ica.datastructures.HANStack;
 import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
+import nl.han.ica.icss.ast.operations.*;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * This class extracts the ICSS Abstract Syntax Tree from the Antlr Parse tree.
@@ -129,15 +126,15 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterBooleanLiteral(ICSSParser.BooleanLiteralContext ctx) {
-        BoolLiteral booleanLiteral = new BoolLiteral(ctx.getText());
-        currentContainer.push(booleanLiteral);
+    public void enterBoolLiteral(ICSSParser.BoolLiteralContext ctx) {
+        BoolLiteral boolLiteral = new BoolLiteral(ctx.getText());
+        currentContainer.push(boolLiteral);
     }
 
     @Override
-    public void exitBooleanLiteral(ICSSParser.BooleanLiteralContext ctx) {
-        BoolLiteral booleanLiteral = (BoolLiteral) currentContainer.pop();
-        currentContainer.peek().addChild(booleanLiteral);
+    public void exitBoolLiteral(ICSSParser.BoolLiteralContext ctx) {
+        BoolLiteral boolLiteral = (BoolLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(boolLiteral);
     }
 
     @Override
@@ -212,26 +209,6 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
-    public void enterEveryRule(ParserRuleContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
-                VariableReference variableReference = new VariableReference(ctx.getChild(0).getText());
-                currentContainer.push(variableReference);
-            }
-        }
-    }
-
-    @Override
-    public void exitEveryRule(ParserRuleContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            if (ctx.getChild(0) instanceof ICSSParser.VariableNameContext) {
-                VariableReference variableReference = (VariableReference) currentContainer.pop();
-                currentContainer.peek().addChild(variableReference);
-            }
-        }
-    }
-
-    @Override
     public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
         TagSelector tagSelector = new TagSelector(ctx.getText());
         currentContainer.push(tagSelector);
@@ -265,5 +242,51 @@ public class ASTListener extends ICSSBaseListener {
     public void exitIdSelector(ICSSParser.IdSelectorContext ctx) {
         IdSelector idSelector = (IdSelector) currentContainer.pop();
         currentContainer.peek().addChild(idSelector);
+    }
+
+    @Override
+    public void enterBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
+        if (ctx.getChildCount() == 3) {
+            ASTNode operation = null;
+            if (ctx.AND() != null) {
+                operation = new AndOperation();
+            } else if (ctx.OR() != null) {
+                operation = new OrOperation();
+            }
+            currentContainer.push(operation);
+        }
+    }
+
+    @Override
+    public void exitBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
+        if (ctx.AND() != null || ctx.OR() != null) {
+            ASTNode operation = currentContainer.pop();
+            currentContainer.peek().addChild(operation);
+        }
+    }
+
+    @Override
+    public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+        ASTNode operation = null;
+        if (ctx.SMALLER() != null) {
+            operation = new SmallerThanOperation();
+        } else if (ctx.SMALLER_EQUAL() != null) {
+            operation = new SmallerThanOrEqualOperation();
+        } else if (ctx.GREATER() != null) {
+            operation = new GreaterThanOperation();
+        } else if (ctx.GREATER_EQUAL() != null) {
+            operation = new GreaterThanOrEqualOperation();
+        } else if (ctx.EQUAL() != null) {
+            operation = new EqualOperation();
+        } else if (ctx.NOT_EQUAL() != null) {
+            operation = new NotEqualOperation();
+        }
+        currentContainer.push(operation);
+    }
+
+    @Override
+    public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+        ASTNode operation = currentContainer.pop();
+        currentContainer.peek().addChild(operation);
     }
 }
