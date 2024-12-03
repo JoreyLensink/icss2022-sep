@@ -259,7 +259,7 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void exitBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
-        if (ctx.AND() != null || ctx.OR() != null) {
+        if (ctx.getChildCount() == 3) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
         }
@@ -267,26 +267,31 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        ASTNode operation = null;
-        if (ctx.SMALLER() != null) {
-            operation = new SmallerThanOperation();
-        } else if (ctx.SMALLER_EQUAL() != null) {
-            operation = new SmallerThanOrEqualOperation();
-        } else if (ctx.GREATER() != null) {
-            operation = new GreaterThanOperation();
-        } else if (ctx.GREATER_EQUAL() != null) {
-            operation = new GreaterThanOrEqualOperation();
-        } else if (ctx.EQUAL() != null) {
-            operation = new EqualOperation();
-        } else if (ctx.NOT_EQUAL() != null) {
-            operation = new NotEqualOperation();
+        if (ctx.getChildCount() == 3) {
+            ASTNode operation = null;
+            if (ctx.SMALLER() != null) {
+                operation = new SmallerThanOperation();
+            } else if (ctx.SMALLER_EQUAL() != null) {
+                operation = new SmallerThanOrEqualOperation();
+            } else if (ctx.GREATER() != null) {
+                operation = new GreaterThanOperation();
+            } else if (ctx.GREATER_EQUAL() != null) {
+                operation = new GreaterThanOrEqualOperation();
+            } else if (ctx.EQUAL() != null) {
+                operation = new EqualOperation();
+            } else if (ctx.NOT_EQUAL() != null) {
+                operation = new NotEqualOperation();
+            }
+            currentContainer.push(operation);
         }
-        currentContainer.push(operation);
+
     }
 
     @Override
     public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        ASTNode operation = currentContainer.pop();
-        currentContainer.peek().addChild(operation);
+        if (ctx.getChildCount() == 3) {
+            ASTNode operation = currentContainer.pop();
+            currentContainer.peek().addChild(operation);
+        }
     }
 }
