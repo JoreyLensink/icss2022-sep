@@ -253,16 +253,31 @@ public class ASTListener extends ICSSBaseListener {
                 operation = new AndOperation();
             } else if (ctx.OR() != null) {
                 operation = new OrOperation();
+            } else if (ctx.comparisonExpression() != null) {
+                enterComparisonExpression(ctx.comparisonExpression());
+                return;
             }
             currentContainer.push(operation);
         } else if (ctx.getChildCount() == 1) {
-            // If the child is a literal, variable, or comparison
             if (ctx.booleanLiteral() != null) {
                 BoolLiteral boolLiteral = new BoolLiteral(ctx.booleanLiteral().getText());
                 currentContainer.push(boolLiteral);
             } else if (ctx.comparisonExpression() != null) {
-                // Recursively handle comparison expressions
-                enterComparisonExpression(ctx.comparisonExpression());
+                ASTNode operation = null;
+                if (ctx.comparisonExpression().SMALLER() != null) {
+                    operation = new SmallerThanOperation();
+                } else if (ctx.comparisonExpression().SMALLER_EQUAL() != null) {
+                    operation = new SmallerThanOrEqualOperation();
+                } else if (ctx.comparisonExpression().GREATER() != null) {
+                    operation = new GreaterThanOperation();
+                } else if (ctx.comparisonExpression().GREATER_EQUAL() != null) {
+                    operation = new GreaterThanOrEqualOperation();
+                } else if (ctx.comparisonExpression().EQUAL() != null) {
+                    operation = new EqualOperation();
+                } else if (ctx.comparisonExpression().NOT_EQUAL() != null) {
+                    operation = new NotEqualOperation();
+                }
+                currentContainer.push(operation);
             } else if (ctx.comparisonExpression().variableName() != null) {
                 VariableReference variableReference = new VariableReference(ctx.comparisonExpression().variableName().getText());
                 currentContainer.push(variableReference);
@@ -276,38 +291,39 @@ public class ASTListener extends ICSSBaseListener {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
         } else if (ctx.getChildCount() == 1) {
-            // For single literal or comparison, we just pop the node
             ASTNode literalOrComparison = currentContainer.pop();
             currentContainer.peek().addChild(literalOrComparison);
         }
     }
 
-    @Override
-    public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        if (ctx.getChildCount() == 3) {
-            ASTNode operation = null;
-            if (ctx.SMALLER() != null) {
-                operation = new SmallerThanOperation();
-            } else if (ctx.SMALLER_EQUAL() != null) {
-                operation = new SmallerThanOrEqualOperation();
-            } else if (ctx.GREATER() != null) {
-                operation = new GreaterThanOperation();
-            } else if (ctx.GREATER_EQUAL() != null) {
-                operation = new GreaterThanOrEqualOperation();
-            } else if (ctx.EQUAL() != null) {
-                operation = new EqualOperation();
-            } else if (ctx.NOT_EQUAL() != null) {
-                operation = new NotEqualOperation();
-            }
-            currentContainer.push(operation);
-        }
-    }
+//     Logica in verplaatst omdat ik via recusie dubble ComparisonExpresion node kreeg.
 
-    @Override
-    public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        if (ctx.getChildCount() == 3) {
-            ASTNode operation = currentContainer.pop();
-            currentContainer.peek().addChild(operation);
-        }
-    }
+//    @Override
+//    public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+//        if (ctx.getChildCount() == 3) {
+//            ASTNode operation = null;
+//            if (ctx.SMALLER() != null) {
+//                operation = new SmallerThanOperation();
+//            } else if (ctx.SMALLER_EQUAL() != null) {
+//                operation = new SmallerThanOrEqualOperation();
+//            } else if (ctx.GREATER() != null) {
+//                operation = new GreaterThanOperation();
+//            } else if (ctx.GREATER_EQUAL() != null) {
+//                operation = new GreaterThanOrEqualOperation();
+//            } else if (ctx.EQUAL() != null) {
+//                operation = new EqualOperation();
+//            } else if (ctx.NOT_EQUAL() != null) {
+//                operation = new NotEqualOperation();
+//            }
+//            currentContainer.push(operation);
+//        }
+//    }
+//
+//    @Override
+//    public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+//        if (ctx.getChildCount() == 3) {
+//            ASTNode operation = currentContainer.pop();
+//            currentContainer.peek().addChild(operation);
+//        }
+//    }
 }
