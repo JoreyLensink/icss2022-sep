@@ -248,12 +248,25 @@ public class ASTListener extends ICSSBaseListener {
     public void enterBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
         if (ctx.getChildCount() == 3) {
             ASTNode operation = null;
+
             if (ctx.AND() != null) {
                 operation = new AndOperation();
             } else if (ctx.OR() != null) {
                 operation = new OrOperation();
             }
             currentContainer.push(operation);
+        } else if (ctx.getChildCount() == 1) {
+            // If the child is a literal, variable, or comparison
+            if (ctx.booleanLiteral() != null) {
+                BoolLiteral boolLiteral = new BoolLiteral(ctx.booleanLiteral().getText());
+                currentContainer.push(boolLiteral);
+            } else if (ctx.comparisonExpression() != null) {
+                // Recursively handle comparison expressions
+                enterComparisonExpression(ctx.comparisonExpression());
+            } else if (ctx.comparisonExpression().variableName() != null) {
+                VariableReference variableReference = new VariableReference(ctx.comparisonExpression().variableName().getText());
+                currentContainer.push(variableReference);
+            }
         }
     }
 
@@ -262,6 +275,10 @@ public class ASTListener extends ICSSBaseListener {
         if (ctx.getChildCount() == 3) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
+        } else if (ctx.getChildCount() == 1) {
+            // For single literal or comparison, we just pop the node
+            ASTNode literalOrComparison = currentContainer.pop();
+            currentContainer.peek().addChild(literalOrComparison);
         }
     }
 
@@ -284,7 +301,6 @@ public class ASTListener extends ICSSBaseListener {
             }
             currentContainer.push(operation);
         }
-
     }
 
     @Override

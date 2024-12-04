@@ -73,7 +73,7 @@ expression: (literal | variableName) | expression MUL expression | expression (P
 
 booleanExpression : comparisonExpression | booleanExpression (AND | OR) booleanExpression | booleanLiteral;
 
-comparisonExpression : expression (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) expression;
+comparisonExpression : (expression (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) expression) | variableName;
 
 ifStatement: IF BOX_BRACKET_OPEN (booleanExpression | variableName) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
 elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
