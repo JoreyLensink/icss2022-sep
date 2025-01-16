@@ -8,4 +8,9 @@ public class AndOperation extends Operation {
     public String getNodeLabel() {
         return "And";
     }
+
+    @Override
+    public String toString() {
+        return lhs + " && " + rhs;
+    }
 }

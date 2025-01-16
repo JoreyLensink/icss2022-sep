@@ -5,6 +5,7 @@ import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.*;
+import nl.han.ica.icss.ast.operations.comparison.*;
 import nl.han.ica.icss.ast.selectors.ClassSelector;
 import nl.han.ica.icss.ast.selectors.IdSelector;
 import nl.han.ica.icss.ast.selectors.TagSelector;
@@ -161,6 +162,7 @@ public class ASTListener extends ICSSBaseListener {
     @Override
     public void enterExpression(ICSSParser.ExpressionContext ctx) {
         if (ctx.getChildCount() == 3) {
+            // Binaire operatoren: PLUS, MIN, MUL
             ASTNode operation = null;
             if (ctx.MIN() != null) {
                 operation = new SubtractOperation();
@@ -170,16 +172,25 @@ public class ASTListener extends ICSSBaseListener {
                 operation = new MultiplyOperation();
             }
             currentContainer.push(operation);
+        } else if (ctx.literal() != null) {
+            // Literal (bijvoorbeeld een cijfer of constante waarde)
+            ASTNode literal = new ScalarLiteral(ctx.literal().getText());
+            currentContainer.peek().addChild(literal);
+        } else if (ctx.variableName() != null) {
+            // Variabele referentie
+            VariableReference variable = new VariableReference(ctx.variableName().getText());
+            currentContainer.peek().addChild(variable);
         }
     }
 
     @Override
     public void exitExpression(ICSSParser.ExpressionContext ctx) {
-        if (ctx.PLUS() != null || ctx.MIN() != null || ctx.MUL() != null) {
+        if (ctx.getChildCount() == 3) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
         }
     }
+
 
     @Override
     public void enterIfStatement(ICSSParser.IfStatementContext ctx) {
@@ -243,84 +254,56 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
-        if (ctx.getChildCount() == 3) {
-            ASTNode operation = null;
-
-            if (ctx.AND() != null) {
-                operation = new AndOperation();
-            } else if (ctx.OR() != null) {
-                operation = new OrOperation();
-            } else if (ctx.comparisonExpression() != null) {
-                enterComparisonExpression(ctx.comparisonExpression());
-                return;
-            }
+        if (ctx.AND() != null || ctx.OR() != null) {
+            ASTNode operation = ctx.AND() != null ? new AndOperation() : new OrOperation();
             currentContainer.push(operation);
-        } else if (ctx.getChildCount() == 1) {
-            if (ctx.booleanLiteral() != null) {
-                BoolLiteral boolLiteral = new BoolLiteral(ctx.booleanLiteral().getText());
-                currentContainer.push(boolLiteral);
-            } else if (ctx.comparisonExpression() != null) {
-                ASTNode operation = null;
-                if (ctx.comparisonExpression().SMALLER() != null) {
-                    operation = new SmallerThanOperation();
-                } else if (ctx.comparisonExpression().SMALLER_EQUAL() != null) {
-                    operation = new SmallerThanOrEqualOperation();
-                } else if (ctx.comparisonExpression().GREATER() != null) {
-                    operation = new GreaterThanOperation();
-                } else if (ctx.comparisonExpression().GREATER_EQUAL() != null) {
-                    operation = new GreaterThanOrEqualOperation();
-                } else if (ctx.comparisonExpression().EQUAL() != null) {
-                    operation = new EqualOperation();
-                } else if (ctx.comparisonExpression().NOT_EQUAL() != null) {
-                    operation = new NotEqualOperation();
-                }
-                currentContainer.push(operation);
-            } else if (ctx.variableName() != null) {
-                VariableReference variableReference = new VariableReference(ctx.variableName().getText());
-                currentContainer.push(variableReference);
-            }
+        } else if (ctx.comparisonExpression() != null) {
+            // Booleanexpressie bevat een comparison expression
+            // Deze wordt afgehandeld in enterComparisonExpression
+        } else if (ctx.booleanLiteral() != null) {
+            ASTNode booleanNode = new BoolLiteral(ctx.booleanLiteral().getText());
+            currentContainer.peek().addChild(booleanNode);
+        } else if (ctx.variableName() != null) {
+            ASTNode variableReference = new VariableReference(ctx.variableName().getText());
+            currentContainer.peek().addChild(variableReference);
         }
     }
 
     @Override
     public void exitBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
-        if (ctx.getChildCount() == 3) {
+        if (ctx.AND() != null || ctx.OR() != null) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
-        } else if (ctx.getChildCount() == 1) {
-            ASTNode literalOrComparison = currentContainer.pop();
-            currentContainer.peek().addChild(literalOrComparison);
         }
     }
 
-//     Logica in verplaatst omdat ik via recusie dubble ComparisonExpresion node kreeg.
+    @Override
+    public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+        if (ctx.getChildCount() == 3) {
+            ASTNode operation = null;
+            if (ctx.SMALLER() != null) {
+                operation = new SmallerThanOperation();
+            } else if (ctx.SMALLER_EQUAL() != null) {
+                operation = new SmallerThanOrEqualOperation();
+            } else if (ctx.GREATER() != null) {
+                operation = new GreaterThanOperation();
+            } else if (ctx.GREATER_EQUAL() != null) {
+                operation = new GreaterThanOrEqualOperation();
+            } else if (ctx.EQUAL() != null) {
+                operation = new EqualOperation();
+            } else if (ctx.NOT_EQUAL() != null) {
+                operation = new NotEqualOperation();
+            }
+            currentContainer.push(operation);
+        }
+    }
 
-//    @Override
-//    public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-//        if (ctx.getChildCount() == 3) {
-//            ASTNode operation = null;
-//            if (ctx.SMALLER() != null) {
-//                operation = new SmallerThanOperation();
-//            } else if (ctx.SMALLER_EQUAL() != null) {
-//                operation = new SmallerThanOrEqualOperation();
-//            } else if (ctx.GREATER() != null) {
-//                operation = new GreaterThanOperation();
-//            } else if (ctx.GREATER_EQUAL() != null) {
-//                operation = new GreaterThanOrEqualOperation();
-//            } else if (ctx.EQUAL() != null) {
-//                operation = new EqualOperation();
-//            } else if (ctx.NOT_EQUAL() != null) {
-//                operation = new NotEqualOperation();
-//            }
-//            currentContainer.push(operation);
-//        }
-//    }
-//
-//    @Override
-//    public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-//        if (ctx.getChildCount() == 3) {
-//            ASTNode operation = currentContainer.pop();
-//            currentContainer.peek().addChild(operation);
-//        }
-//    }
+    @Override
+    public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
+        if (ctx.getChildCount() == 3) {
+            ASTNode operation = currentContainer.pop();
+            currentContainer.peek().addChild(operation);
+        }
+    }
+
 }
