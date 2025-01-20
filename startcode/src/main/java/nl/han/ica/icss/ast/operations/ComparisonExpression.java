@@ -6,8 +6,8 @@ import nl.han.ica.icss.ast.Expression;
 import java.util.ArrayList;
 
 public abstract class ComparisonExpression extends Expression {
-    protected Expression lhs;
-    protected Expression rhs;
+    public Expression lhs;
+    public Expression rhs;
 
     public ComparisonExpression() {
     }

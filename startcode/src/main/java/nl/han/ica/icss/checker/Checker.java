@@ -2,12 +2,9 @@ package nl.han.ica.icss.checker;
 
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
-import nl.han.ica.icss.ast.operations.AndOperation;
 import nl.han.ica.icss.ast.operations.ComparisonExpression;
-import nl.han.ica.icss.ast.operations.OrOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -17,19 +14,15 @@ public class Checker {
 
     public void check(AST ast) {
         variableTypes = new LinkedList<>();
-        System.out.println("Starting checker on AST root...");
         checkStyleSheet(ast.root);
-        System.out.println("Checker finished.");
     }
 
     private void checkStyleSheet(Stylesheet stylesheet) {
         variableTypes.addFirst(new HashMap<>());
-        System.out.println("Checking stylesheet...");
         for (ASTNode child : stylesheet.getChildren()) {
             if (child instanceof VariableAssignment) {
                 checkVariableAssignment((VariableAssignment) child);
             } else if (child instanceof Stylerule) {
-                System.out.println("Entering stylerule...");
                 variableTypes.addFirst(new HashMap<>());
                 checkStyleRule((Stylerule) child);
                 variableTypes.removeFirst();
@@ -41,15 +34,12 @@ public class Checker {
     private void checkStyleRule(Stylerule styleRule) {
         for (ASTNode child : styleRule.getChildren()) {
             if (child instanceof Declaration) {
-                System.out.println("Checking declaration: " + child);
                 checkDeclaration((Declaration) child);
             }
             if (child instanceof VariableAssignment) {
-                System.out.println("Checking variable assignment: " + child);
                 checkVariableAssignment((VariableAssignment) child);
             }
             if (child instanceof IfClause) {
-                System.out.println("Checking if-clause: " + child);
                 checkIfClause((IfClause) child);
             }
         }
@@ -57,8 +47,6 @@ public class Checker {
 
     private void checkDeclaration(Declaration declaration) {
         ExpressionType expressionType = checkExpression(declaration.expression);
-
-        System.out.println("Property: " + declaration.property.name + ", Expression type: " + expressionType);
 
         switch (declaration.property.name) {
             case "width":
@@ -79,28 +67,8 @@ public class Checker {
         }
     }
 
-    private ExpressionType checkExpression(Expression expression) {
-        if (expression instanceof VariableReference) {
-            return checkVariableReference((VariableReference) expression);
-        } else if (expression instanceof PercentageLiteral) {
-            return ExpressionType.PERCENTAGE;
-        } else if (expression instanceof PixelLiteral) {
-            return ExpressionType.PIXEL;
-        } else if (expression instanceof ColorLiteral) {
-            return ExpressionType.COLOR;
-        } else if (expression instanceof ScalarLiteral) {
-            return ExpressionType.SCALAR;
-        } else if (expression instanceof BoolLiteral) {
-            return ExpressionType.BOOL;
-        } else {
-            System.out.println("Unsupported expression: " + expression);
-            return ExpressionType.UNDEFINED;
-        }
-    }
-
     private void checkVariableAssignment(VariableAssignment variableAssignment) {
         ExpressionType type = checkExpression(variableAssignment.expression);
-        System.out.println("Variable assignment: " + variableAssignment.name.name + " of type " + type);
 
         if (type != ExpressionType.UNDEFINED) {
             variableTypes.getFirst().put(variableAssignment.name.name, type);
@@ -111,7 +79,6 @@ public class Checker {
 
     private ExpressionType checkVariableReference(VariableReference variableReference) {
         ExpressionType expressionType = getVariableType(variableReference.name);
-        System.out.println("Variable reference: " + variableReference.name + ", Type: " + expressionType);
 
         if (expressionType == null) {
             variableReference.setError("Variable '" + variableReference.name + "' was never set.");
@@ -131,14 +98,110 @@ public class Checker {
     }
 
     private void checkIfClause(IfClause ifClause) {
-        ExpressionType conditionType = checkExpression(ifClause.conditionalExpression);
-
-        System.out.println("If-clause condition type: " + conditionType);
-
+        // Controleer de conditie in de IF-clause.
+        ExpressionType conditionType = checkBooleanExpression(ifClause.conditionalExpression);
         if (conditionType != ExpressionType.BOOL) {
             ifClause.setError("The conditional expression in an if-clause must evaluate to BOOL.");
         }
     }
+
+    private ExpressionType checkBooleanExpression(Expression expression) {
+        if (expression instanceof Literal) {
+            // Controleer of het een geldig boolean-literal is (bijvoorbeeld geen PixelLiteral of PercentageLiteral)
+            if (expression instanceof BoolLiteral || expression instanceof ScalarLiteral) {
+                return ExpressionType.BOOL;
+            } else {
+                expression.setError("Boolean expressions can only be BoolLiteral or ScalarLiteral, not " + expression.getClass().getSimpleName());
+                return ExpressionType.UNDEFINED;
+            }
+        } else if (expression instanceof VariableReference) {
+            // Controleer of de variabele een BOOLEAN type is.
+            return checkVariableReference((VariableReference) expression);
+        } else if (expression instanceof ComparisonExpression) {
+            // Comparisons:  <, >, == enz.
+            return checkComparisonExpression((ComparisonExpression) expression);
+        } else if (expression instanceof Operation) {
+            // AND - OR
+            return checkLogicalOperation((Operation) expression);
+        } else {
+            expression.setError("Invalid boolean expression.");
+            return ExpressionType.UNDEFINED;
+        }
+    }
+
+
+    private ExpressionType checkLogicalOperation(Operation operation) {
+        ExpressionType lhsType = checkBooleanExpression(operation.lhs);
+        ExpressionType rhsType = checkBooleanExpression(operation.rhs);
+
+        if (lhsType != ExpressionType.BOOL || rhsType != ExpressionType.BOOL) {
+            operation.setError("Both sides of a logical operation (AND, OR) must evaluate to BOOL.");
+            return ExpressionType.UNDEFINED;
+        }
+        return ExpressionType.BOOL;
+    }
+
+    private ExpressionType checkComparisonExpression(ComparisonExpression comparison) {
+        ExpressionType lhsType = checkExpression(comparison.lhs);
+        ExpressionType rhsType = checkExpression(comparison.rhs);
+
+
+        if (isComparableType(lhsType) || isComparableType(rhsType)) {
+            comparison.setError("Both sides of a comparison must be Literal type.");
+            return ExpressionType.UNDEFINED;
+        }
+        return ExpressionType.BOOL;
+    }
+
+    private boolean isComparableType(ExpressionType type) {
+        return type != ExpressionType.SCALAR;
+    }
+
+    private ExpressionType checkExpression(Expression expression) {
+        if (expression instanceof Literal) {
+            // Literals worden op type gecontroleerd.
+            return checkLiteral((Literal) expression);
+        } else if (expression instanceof VariableReference) {
+            return checkVariableReference((VariableReference) expression);
+        } else if (expression instanceof Operation) {
+            // Rekenkundige operaties zoals +, -, *, etc.
+            return checkArithmeticOperation((Operation) expression);
+        } else {
+            expression.setError("Invalid expression.");
+            return ExpressionType.UNDEFINED;
+        }
+    }
+
+    private ExpressionType checkArithmeticOperation(Operation operation) {
+        ExpressionType lhsType = checkExpression(operation.lhs);
+        ExpressionType rhsType = checkExpression(operation.rhs);
+
+        // Rekenoperaties mogen geen BOOLEAN of COLOR types bevatten.
+        if (lhsType == ExpressionType.BOOL || lhsType == ExpressionType.COLOR ||
+                rhsType == ExpressionType.BOOL || rhsType == ExpressionType.COLOR) {
+            operation.setError("Arithmetic operations cannot involve BOOLEAN or COLOR types.");
+            return ExpressionType.UNDEFINED;
+        }
+        return lhsType; // Type van de expressie wordt gebaseerd op het LHS-type.
+    }
+
+    private ExpressionType checkLiteral(Literal literal) {
+        if (literal instanceof BoolLiteral) {
+            return ExpressionType.BOOL;
+        } else if (literal instanceof ScalarLiteral) {
+            return ExpressionType.SCALAR;
+        } else if (literal instanceof PixelLiteral) {
+            return ExpressionType.PIXEL;
+        } else if (literal instanceof PercentageLiteral) {
+            return ExpressionType.PERCENTAGE;
+        } else if (literal instanceof ColorLiteral) {
+            return ExpressionType.COLOR;
+        } else {
+            literal.setError("Unknown literal type.");
+            return ExpressionType.UNDEFINED;
+        }
+    }
+
 }
 
 
