@@ -161,6 +161,8 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterExpression(ICSSParser.ExpressionContext ctx) {
+        System.out.println("Enter expression: " + ctx.getText());
+
         if (ctx.getChildCount() == 3) {
             // Binaire operatoren: PLUS, MIN, MUL
             ASTNode operation = null;
@@ -173,8 +175,21 @@ public class ASTListener extends ICSSBaseListener {
             }
             currentContainer.push(operation);
         } else if (ctx.literal() != null) {
-            // Literal (bijvoorbeeld een cijfer of constante waarde)
-            ASTNode literal = new ScalarLiteral(ctx.literal().getText());
+            // Literal (bijvoorbeeld een cijfer, px, %, of kleur)
+            String literalText = ctx.literal().getText();
+
+            ASTNode literal;
+            if (literalText.endsWith("px")) {
+                literal = new PixelLiteral(literalText);
+            } else if (literalText.endsWith("%")) {
+                literal = new PercentageLiteral(literalText);
+            } else if (literalText.startsWith("#")) {
+                literal = new ColorLiteral(literalText);
+            } else {
+                // Standaard scalar literal (bijvoorbeeld "42")
+                literal = new ScalarLiteral(literalText);
+            }
+
             currentContainer.peek().addChild(literal);
         } else if (ctx.variableName() != null) {
             // Variabele referentie
@@ -182,6 +197,7 @@ public class ASTListener extends ICSSBaseListener {
             currentContainer.peek().addChild(variable);
         }
     }
+
 
     @Override
     public void exitExpression(ICSSParser.ExpressionContext ctx) {
