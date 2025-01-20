@@ -5,9 +5,8 @@ import nl.han.ica.icss.ast.literals.BoolLiteral;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
+import nl.han.ica.icss.ast.operations.*;
+import nl.han.ica.icss.ast.operations.comparison.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,14 +66,19 @@ public class Evaluator implements Transform {
 
     private void applyVariableAssignment(VariableAssignment variableAssignment) {
         variableAssignment.expression = applyExpression(variableAssignment.expression);
-
         variableValues.getFirst().put(variableAssignment.name.name, (Literal) variableAssignment.expression);
     }
 
 
     private Literal applyExpression(Expression expression) {
         if (expression instanceof Operation) {
-            return applyOperation((Operation) expression);
+            if (expression instanceof AndOperation || expression instanceof OrOperation) {
+                return applyLogicalOperation((Operation) expression);
+            } else {
+                return applyArithmeticOperation((Operation) expression);
+            }
+        } else if (expression instanceof ComparisonExpression) {
+            return applyComparisonExpression((ComparisonExpression) expression);
         } else if (expression instanceof VariableReference) {
             return getVariableLiteral(((VariableReference) expression).name, variableValues);
         } else if (expression instanceof Literal) {
@@ -115,23 +119,82 @@ public class Evaluator implements Transform {
     }
 
 
-    private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
-        ifClause.conditionalExpression = applyExpression(ifClause.conditionalExpression);
+    // Evaluates arithmetic operations (e.g., +, -, *)
+    private Literal applyArithmeticOperation(Operation operation) {
+        Literal left = applyExpression(operation.lhs);
+        Literal right = applyExpression(operation.rhs);
 
-        if (ifClause.conditionalExpression != null && ((BoolLiteral) ifClause.conditionalExpression).value) {
-            if (ifClause.elseClause != null) {
-                ifClause.elseClause.body = new ArrayList<>();
-            }
-        } else {
-            if (ifClause.elseClause == null) {
-                ifClause.body = new ArrayList<>();
-            } else {
-                ifClause.body = ifClause.elseClause.body;
-                ifClause.elseClause.body = new ArrayList<>();
+        int leftValue = getLiteralValue(left);
+        int rightValue = getLiteralValue(right);
+
+        if (operation instanceof AddOperation) {
+            return createLiteral(left, leftValue + rightValue);
+        } else if (operation instanceof SubtractOperation) {
+            return createLiteral(left, leftValue - rightValue);
+        } else if (operation instanceof MultiplyOperation) {
+            return createLiteral(left, leftValue * rightValue);
+        }
+        return null;
+    }
+
+    private Literal applyLogicalOperation(Operation operation) {
+        // Evalueer de linker- en rechterzijde van de operatie
+        Literal left = applyExpression(operation.lhs);
+        Literal right = applyExpression(operation.rhs);
+
+        // Controleer of beide linker- en rechterzijde van de operatie booleans zijn
+        if (left instanceof BoolLiteral && right instanceof BoolLiteral) {
+            BoolLiteral leftBool = (BoolLiteral) left;
+            BoolLiteral rightBool = (BoolLiteral) right;
+
+            // Voer de logische operatie uit afhankelijk van het type operatie
+            if (operation instanceof AndOperation) {
+                return new BoolLiteral(leftBool.value && rightBool.value);
+            } else if (operation instanceof OrOperation) {
+                return new BoolLiteral(leftBool.value || rightBool.value);
             }
         }
-        for (ASTNode child : ifClause.getChildren()) {
-            applyStyleruleBody(child, parent);
+
+        return null;
+    }
+
+
+    // Evaluates comparison operations (e.g., <, ==)
+    private Literal applyComparisonExpression(ComparisonExpression expression) {
+        Literal left = applyExpression(expression.lhs);
+        Literal right = applyExpression(expression.rhs);
+
+        int leftValue = getLiteralValue(left);
+        int rightValue = getLiteralValue(right);
+
+        if (expression instanceof SmallerThanOperation) {
+            return new BoolLiteral(leftValue < rightValue);
+        } else if (expression instanceof GreaterThanOperation) {
+            return new BoolLiteral(leftValue >= rightValue);
+        } else if (expression instanceof EqualOperation) {
+            return new BoolLiteral(leftValue == rightValue);
+        } else if (expression instanceof NotEqualOperation) {
+            return new BoolLiteral(leftValue != rightValue);
+        } else if (expression instanceof SmallerThanOrEqualOperation) {
+            return new BoolLiteral(leftValue <= rightValue);
+        } else if (expression instanceof GreaterThanOrEqualOperation) {
+            return new BoolLiteral(leftValue >= rightValue);
+        }
+        return null;
+    }
+
+    // Handles the IfClause logic
+    private void applyIfClause(IfClause ifClause, ArrayList<ASTNode> parent) {
+        Literal condition = applyExpression(ifClause.conditionalExpression);
+
+        if (condition instanceof BoolLiteral && ((BoolLiteral) condition).value) {
+            for (ASTNode child : ifClause.body) {
+                applyStyleruleBody(child, parent);
+            }
+        } else if (ifClause.elseClause != null) {
+            for (ASTNode child : ifClause.elseClause.body) {
+                applyStyleruleBody(child, parent);
+            }
         }
     }
 

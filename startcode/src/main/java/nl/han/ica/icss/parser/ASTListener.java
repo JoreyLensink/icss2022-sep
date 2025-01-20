@@ -161,8 +161,6 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterExpression(ICSSParser.ExpressionContext ctx) {
-        System.out.println("Enter expression: " + ctx.getText());
-
         if (ctx.getChildCount() == 3) {
             // Binaire operatoren: PLUS, MIN, MUL
             ASTNode operation = null;
