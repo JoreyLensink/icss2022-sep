@@ -126,6 +126,8 @@ public class Evaluator implements Transform {
 
         int leftValue = getLiteralValue(left);
         int rightValue = getLiteralValue(right);
+        System.out.println("leftValue: " + leftValue);
+        System.out.println("rightValue: " + rightValue);
 
         if (operation instanceof AddOperation) {
             return createLiteral(left, leftValue + rightValue);

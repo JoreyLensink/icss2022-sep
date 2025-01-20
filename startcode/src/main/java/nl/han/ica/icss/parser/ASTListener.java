@@ -171,11 +171,14 @@ public class ASTListener extends ICSSBaseListener {
             } else if (ctx.MUL() != null) {
                 operation = new MultiplyOperation();
             }
+
+            // Voeg operatie toe aan de huidige container
+            currentContainer.peek().addChild(operation);
+            // Maak de nieuwe operatie de actieve container
             currentContainer.push(operation);
         } else if (ctx.literal() != null) {
-            // Literal (bijvoorbeeld een cijfer, px, %, of kleur)
+            // Literal
             String literalText = ctx.literal().getText();
-
             ASTNode literal;
             if (literalText.endsWith("px")) {
                 literal = new PixelLiteral(literalText);
@@ -184,10 +187,8 @@ public class ASTListener extends ICSSBaseListener {
             } else if (literalText.startsWith("#")) {
                 literal = new ColorLiteral(literalText);
             } else {
-                // Standaard scalar literal (bijvoorbeeld "42")
                 literal = new ScalarLiteral(literalText);
             }
-
             currentContainer.peek().addChild(literal);
         } else if (ctx.variableName() != null) {
             // Variabele referentie
@@ -197,13 +198,23 @@ public class ASTListener extends ICSSBaseListener {
     }
 
 
+
     @Override
     public void exitExpression(ICSSParser.ExpressionContext ctx) {
         if (ctx.getChildCount() == 3) {
+            // Sluit de huidige operatie af
             ASTNode operation = currentContainer.pop();
+
+            // Controleer of de operatie twee kinderen heeft (links en rechts)
+            if (operation.getChildren().size() != 2) {
+                throw new RuntimeException("Invalid operation: " + operation);
+            }
+
+            // Voeg de operatie toe aan de bovenliggende container
             currentContainer.peek().addChild(operation);
         }
     }
+
 
 
     @Override

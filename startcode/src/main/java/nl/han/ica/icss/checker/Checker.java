@@ -98,6 +98,8 @@ public class Checker {
     }
 
     private void checkIfClause(IfClause ifClause) {
+        System.out.println("Checking if-clause");
+        System.out.println(ifClause.conditionalExpression);
         // Controleer de conditie in de IF-clause.
         ExpressionType conditionType = checkBooleanExpression(ifClause.conditionalExpression);
         if (conditionType != ExpressionType.BOOL) {
