@@ -63,7 +63,7 @@ styleTag: LOWER_IDENT;
 variableName: CAPITAL_IDENT;
 variableAssignment: variableName ASSIGNMENT_OPERATOR literal SEMICOLON;
 
-selector: (tagSelector | classSelector | idSelector);
+selector: tagSelector | classSelector | idSelector;
 tagSelector: LOWER_IDENT;
 classSelector: CLASS_IDENT;
 idSelector: ID_IDENT;
