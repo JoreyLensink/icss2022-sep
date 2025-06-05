@@ -72,9 +72,7 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void exitStyleDeclaration(ICSSParser.StyleDeclarationContext ctx) {
-        // error: cannot be cast to clas ...Declaration
-        // print the current container stack
-        System.out.println("Current container stack:" + currentContainer);
+
         Declaration declaration = (Declaration) currentContainer.pop();
         currentContainer.peek().addChild(declaration);
     }
@@ -165,9 +163,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void enterExpression(nl.han.ica.icss.parser.ICSSParser.ExpressionContext ctx) {
-        System.out.println("enterExpression: " + ctx.getText());
-        System.out.println("      children: " + ctx.getChildCount());
-
         // Binaire operatoren: PLUS, MIN, MUL
         if (ctx.MIN() != null || ctx.PLUS() != null || ctx.MUL() != null) {
             ASTNode operation = null;
@@ -205,10 +200,8 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void exitExpression(ICSSParser.ExpressionContext ctx) {
-        System.out.println("exitExpression: " + ctx.getText());
-        System.out.println("      children: " + ctx.getChildCount());
+        // Binaire operatie afsluiten
         if (ctx.MIN() != null || ctx.PLUS() != null || ctx.MUL() != null) {
-            // Binaire operatie afsluiten
             ASTNode operation = currentContainer.pop();
 
             if (operation.getChildren().size() != 2) {
@@ -216,7 +209,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
             }
 
             // Voeg de operatie toe aan de bovenliggende container
-            System.out.println("EXIT: " + ctx.getText());
             currentContainer.peek().addChild(operation);
         } else {
             ASTNode literal = currentContainer.pop();
@@ -287,8 +279,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void enterBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
-        System.out.println("enterBooleanExpression: " + ctx.getText());
-        System.out.println("      children: " + ctx.getChildCount());
         if (ctx.AND() != null || ctx.OR() != null) {
             ASTNode operation = ctx.AND() != null ? new AndOperation() : new OrOperation();
             currentContainer.push(operation);
@@ -306,8 +296,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void exitBooleanExpression(ICSSParser.BooleanExpressionContext ctx) {
-        System.out.println("exitBooleanExpression: " + ctx.getText());
-        System.out.println("      children: " + ctx.getChildCount());
         if (ctx.AND() != null || ctx.OR() != null) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
@@ -316,7 +304,7 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void enterComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        System.out.println("enterComparisonExpression: " + ctx.getText());
+        // Controleer welke vergelijking wordt gebruikt
         if (ctx.getChildCount() == 3) {
             ASTNode operation = null;
             if (ctx.SMALLER() != null) {
@@ -338,7 +326,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
     @Override
     public void exitComparisonExpression(ICSSParser.ComparisonExpressionContext ctx) {
-        System.out.println("exitComparisonExpression: " + ctx.getText());
         if (ctx.getChildCount() == 3) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);

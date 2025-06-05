@@ -63,12 +63,10 @@ public class Evaluator implements Transform {
         }
     }
 
-
     private void applyVariableAssignment(VariableAssignment variableAssignment) {
         variableAssignment.expression = applyExpression(variableAssignment.expression);
         variableValues.getFirst().put(variableAssignment.name.name, (Literal) variableAssignment.expression);
     }
-
 
     private Literal applyExpression(Expression expression) {
         if (expression instanceof Operation) {
@@ -87,26 +85,26 @@ public class Evaluator implements Transform {
         return null;
     }
 
-    private Literal applyOperation(Operation operation) {
-        Literal left = applyExpression(operation.lhs);
-        Literal right = applyExpression(operation.rhs);
-
-        int leftValue = getLiteralValue(left);
-        int rightValue = getLiteralValue(right);
-
-        if (operation instanceof AddOperation) {
-            return createLiteral(left, leftValue + rightValue);
-        } else if (operation instanceof SubtractOperation) {
-            return createLiteral(left, leftValue - rightValue);
-        } else if (operation instanceof MultiplyOperation) {
-            if (left instanceof ScalarLiteral) {
-                return createLiteral(right, leftValue * rightValue);
-            } else {
-                return createLiteral(left, leftValue * rightValue);
-            }
-        }
-        return null;
-    }
+//    private Literal applyOperation(Operation operation) {
+//        Literal left = applyExpression(operation.lhs);
+//        Literal right = applyExpression(operation.rhs);
+//
+//        int leftValue = getLiteralValue(left);
+//        int rightValue = getLiteralValue(right);
+//
+//        if (operation instanceof AddOperation) {
+//            return createLiteral(left, leftValue + rightValue);
+//        } else if (operation instanceof SubtractOperation) {
+//            return createLiteral(left, leftValue - rightValue);
+//        } else if (operation instanceof MultiplyOperation) {
+//            if (left instanceof ScalarLiteral) {
+//                return createLiteral(right, leftValue * rightValue);
+//            } else {
+//                return createLiteral(left, leftValue * rightValue);
+//            }
+//        }
+//        return null;
+//    }
 
     private Literal getVariableLiteral(String variableReference, LinkedList<HashMap<String, Literal>> variableValues) {
         for (HashMap<String, Literal> variableValue : variableValues) {
@@ -118,16 +116,13 @@ public class Evaluator implements Transform {
         return null;
     }
 
-
-    // Evaluates arithmetic operations (e.g., +, -, *)
+    // Evaluates (+, -, *) operations
     private Literal applyArithmeticOperation(Operation operation) {
         Literal left = applyExpression(operation.lhs);
         Literal right = applyExpression(operation.rhs);
 
         int leftValue = getLiteralValue(left);
         int rightValue = getLiteralValue(right);
-        System.out.println("leftValue: " + leftValue);
-        System.out.println("rightValue: " + rightValue);
 
         if (operation instanceof AddOperation) {
             return createLiteral(left, leftValue + rightValue);

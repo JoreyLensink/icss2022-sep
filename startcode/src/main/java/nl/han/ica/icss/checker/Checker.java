@@ -98,8 +98,6 @@ public class Checker {
     }
 
     private void checkIfClause(IfClause ifClause) {
-        System.out.println("Checking if-clause");
-        System.out.println(ifClause.conditionalExpression);
         // Controleer de conditie in de IF-clause.
         ExpressionType conditionType = checkBooleanExpression(ifClause.conditionalExpression);
         if (conditionType != ExpressionType.BOOL) {
@@ -120,7 +118,7 @@ public class Checker {
             // Controleer of de variabele een BOOLEAN type is.
             return checkVariableReference((VariableReference) expression);
         } else if (expression instanceof ComparisonExpression) {
-            // Comparisons:  <, >, == enz.
+            // Comparisons:  <, >, == ect.
             return checkComparisonExpression((ComparisonExpression) expression);
         } else if (expression instanceof Operation) {
             // AND - OR
