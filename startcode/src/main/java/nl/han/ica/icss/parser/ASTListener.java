@@ -217,9 +217,6 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
             ASTNode variable = currentContainer.pop();
             currentContainer.peek().addChild(variable);
         }
-        else {
-            System.out.println("??????");
-        }
     }
 
 
