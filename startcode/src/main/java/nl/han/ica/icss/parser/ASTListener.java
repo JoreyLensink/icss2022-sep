@@ -210,9 +210,15 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
 
             // Voeg de operatie toe aan de bovenliggende container
             currentContainer.peek().addChild(operation);
-        } else {
+        } else if (ctx.literal() != null) {
             ASTNode literal = currentContainer.pop();
             currentContainer.peek().addChild(literal);
+        } else if (ctx.variableName() != null) {
+            ASTNode variable = currentContainer.pop();
+            currentContainer.peek().addChild(variable);
+        }
+        else {
+            System.out.println("??????");
         }
     }
 
@@ -287,10 +293,10 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
             // Deze wordt afgehandeld in enterComparisonExpression
         } else if (ctx.booleanLiteral() != null) {
             ASTNode booleanNode = new BoolLiteral(ctx.booleanLiteral().getText());
-            currentContainer.peek().addChild(booleanNode);
+            currentContainer.push(booleanNode);
         } else if (ctx.variableName() != null) {
             ASTNode variableReference = new VariableReference(ctx.variableName().getText());
-            currentContainer.peek().addChild(variableReference);
+            currentContainer.push(variableReference);
         }
     }
 
@@ -300,6 +306,16 @@ public class ASTListener extends nl.han.ica.icss.parser.ICSSBaseListener {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
         }
+        else if (ctx.comparisonExpression() != null) {
+            // Comparison expression wordt afgehandeld in enterComparisonExpression
+        } else if (ctx.booleanLiteral() != null) {
+            ASTNode booleanNode = currentContainer.pop();
+            currentContainer.peek().addChild(booleanNode);
+        } else if (ctx.variableName() != null) {
+            ASTNode variableReference = currentContainer.pop();
+            currentContainer.peek().addChild(variableReference);
+        }
+
     }
 
     @Override

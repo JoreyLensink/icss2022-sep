@@ -74,5 +74,6 @@ booleanExpression : comparisonExpression | booleanExpression (AND | OR) booleanE
 
 comparisonExpression : (expression (SMALLER | SMALLER_EQUAL | GREATER | GREATER_EQUAL | EQUAL | NOT_EQUAL) expression);
 
-ifStatement: IF BOX_BRACKET_OPEN (booleanExpression | variableName) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
+ifStatement: IF BOX_BRACKET_OPEN (booleanExpression) BOX_BRACKET_CLOSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)*  CLOSE_BRACE elseStatement?;
 elseStatement: ELSE OPEN_BRACE (styleDeclaration | ifStatement | variableAssignment)* CLOSE_BRACE;
+
